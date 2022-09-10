@@ -1,15 +1,6 @@
 #include "graphicsview.h"
+#include "QtCore/qtimer.h"
 #include "QtGui/qevent.h"
-
-GraphicsView::GraphicsView()
-{
-    // left and right can't be true at the same time
-    // must remember that a key is still being held down even if another is pressed
-    upPersistent = false;
-    downPersistent = false;
-    leftPersistent = false;
-    rightPersistent = false;
-}
 
 GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
@@ -18,6 +9,13 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     downPersistent = false;
     leftPersistent = false;
     rightPersistent = false;
+
+    shotsTimer = new QTimer();
+    QObject::connect(shotsTimer, &QTimer::timeout, this, &GraphicsView::shoot);
+
+    delayTimer = new QTimer();
+    delayTimer->setSingleShot(true);
+    QObject::connect(delayTimer, &QTimer::timeout, this, &GraphicsView::startFullAuto);
 }
 
 void GraphicsView::keyPressEvent(QKeyEvent *event)
@@ -64,6 +62,11 @@ void GraphicsView::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
+void GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    mousePressEvent(event);
+}
+
 void GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
     qreal mouseX = event->position().x();
@@ -72,32 +75,30 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
     qreal centerX = player->x() + (player->getSize() / 2);
     qreal centerY = player->y() + (player->getSize() / 2);
 
-    QLineF mouseLine(mouseX, mouseY, centerX, centerY);
+    QLineF mouseLine(centerX, centerY, mouseX, mouseY);
 
-    qreal angleDegree(mouseLine.angle());
+    mouseAngle = mouseLine.angle();
+    gunTip = mouseLine.pointAt(60 / mouseLine.length());
 
-    player->getGun()->rotate(angleDegree);
+    player->getGun()->rotate(mouseAngle);
 }
 
 void GraphicsView::mousePressEvent(QMouseEvent *event)
 {
-    qreal mouseX = event->position().x();
-    qreal mouseY = event->position().y();
+    mouseMoveEvent(event);
 
-    qreal centerX = player->x() + (player->getSize() / 2);
-    qreal centerY = player->y() + (player->getSize() / 2);
+    pressedPersistent = true;
+    shoot();
+    delayTimer->start(250);
+}
 
-    QLineF mouseLine(mouseX, mouseY, centerX, centerY);
+void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
+{
+    mouseMoveEvent(event);
 
-    qreal angleDegree(mouseLine.angle());
-    angleDegree = angleDegree + 180;
-    qreal angleRadian(qDegreesToRadians(angleDegree));
-
-    QPointF gunTip = player->getGun()->scenePos();
-
-    Bullet *bullet = new Bullet(gunTip, angleRadian);
-    bullets.append(bullet);
-    scene()->addItem(bullet);
+    pressedPersistent = false;
+    shotsTimer->stop();
+    delayTimer->stop();
 }
 
 void GraphicsView::resizeEvent(QResizeEvent *event)
@@ -116,12 +117,18 @@ void GraphicsView::setPlayer(Player *newPlayer)
     player = newPlayer;
 }
 
-Gun *GraphicsView::getGun() const
+void GraphicsView::shoot()
 {
-    return gun;
+    if (pressedPersistent) {
+        qreal angleRadian(qDegreesToRadians(mouseAngle));
+        // update gun tip when advance() called
+        Bullet *bullet = new Bullet(gunTip, angleRadian);
+        bullets.append(bullet);
+        scene()->addItem(bullet);
+    }
 }
 
-void GraphicsView::setGun(Gun *newGun)
+void GraphicsView::startFullAuto()
 {
-    gun = newGun;
+    shotsTimer->start(25);
 }

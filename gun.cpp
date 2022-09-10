@@ -20,7 +20,7 @@ Gun::Gun(QGraphicsItem *parent)
 
 void Gun::rotate(qreal angle)
 {
-    setRotation(-angle + 180);
+    setRotation(-angle);
 }
 
 
