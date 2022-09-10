@@ -19,13 +19,6 @@ int main(int argc, char *argv[])
     scene.setSceneRect(0, 0, 500, 500);
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
 
-//    QGraphicsLineItem *xAxis = new QGraphicsLineItem(250, 0, 250, 500);
-//    scene.addItem(xAxis);
-//    QGraphicsLineItem *yAxis = new QGraphicsLineItem(0, 250, 500, 250);
-//    scene.addItem(yAxis);
-//    QGraphicsRectItem *box = new QGraphicsRectItem(0, 0, 500, 500);
-//    scene.addItem(box);
-
     Player *player = new Player();
     scene.addItem(player);
 
@@ -45,6 +38,7 @@ int main(int argc, char *argv[])
 
     QTimer timer;
     QObject::connect(&timer, &QTimer::timeout, &scene, &QGraphicsScene::advance);
+    QObject::connect(&timer, &QTimer::timeout, &view, &GraphicsView::moveGun);
     timer.start(10);
 
 

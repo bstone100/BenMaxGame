@@ -7,6 +7,7 @@
 
 class GraphicsView : public QGraphicsView
 {
+    Q_OBJECT
 public:
     GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr);
 
@@ -27,18 +28,25 @@ public:
     void startFullAuto();
     void removeBullet(Bullet *bullet){bullets.removeOne(bullet);}
 
+public slots:
+    void moveGun();
+
 private:
-    bool upPersistent, downPersistent, leftPersistent, rightPersistent;
-    bool pressedPersistent;
+    bool upHeld, downHeld, leftHeld, rightHeld;
+
+    QPointF mouseTip, playerCenter, gunTip;
 
     qreal mouseAngle;
-    QPointF gunTip;
 
     Player *player;
     QVector<Bullet *> bullets;
 
     QTimer *shotsTimer;
     QTimer *delayTimer;
+
+    QGraphicsLineItem *xAxis;
+    QGraphicsLineItem *yAxis;
+    QGraphicsRectItem *box;
 };
 
 #endif // GRAPHICSVIEW_H
