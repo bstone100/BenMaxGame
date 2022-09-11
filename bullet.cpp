@@ -9,6 +9,10 @@ Bullet::Bullet(QPointF gunTip, qreal angle)
     this->angle = angle;
     setRect(0, 0, size, size);
     setPos(gunTip.x() - size / 2, gunTip.y() - size / 2);
+
+    damage = 20;
+
+//    setBrush(QBrush(Qt::green));
 }
 
 void Bullet::advance(int step)
@@ -16,19 +20,24 @@ void Bullet::advance(int step)
     if (!step) return;
 
     moveBy(velo * cos(angle), -velo * sin(angle));
+}
 
-    QRectF circleBorder(x(), y(), size, size);
-    QRectF sceneBorder(-size, -size, scene()->width() + size * 2, scene()->height() + size * 2);
-    bool contains = sceneBorder.contains(circleBorder);
+int Bullet::getDamage() const
+{
+    return damage;
+}
 
-    if (!contains) {
-        scene()->removeItem(this);
-        delete this;
-//        QGraphicsView *view = scene()->views().at(0);
-//        GraphicsView *v = static_cast<GraphicsView *>(view);
-//        if (v) {
-//            v->removeBullet(this);
-//            delete this;
-//        }
-    }
+void Bullet::setDamage(int newDamage)
+{
+    damage = newDamage;
+}
+
+int Bullet::getSize() const
+{
+    return size;
+}
+
+void Bullet::setSize(int newSize)
+{
+    size = newSize;
 }

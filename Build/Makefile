@@ -53,6 +53,7 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = ../bullet.cpp \
+		../enemy.cpp \
 		../graphicsview.cpp \
 		../gun.cpp \
 		../main.cpp \
@@ -61,6 +62,7 @@ SOURCES       = ../bullet.cpp \
 		moc_graphicsview.cpp \
 		moc_mainwindow.cpp
 OBJECTS       = bullet.o \
+		enemy.o \
 		graphicsview.o \
 		gun.o \
 		main.o \
@@ -217,10 +219,12 @@ DIST          = ../../../../Qt/6.3.1/macos/mkspecs/features/spec_pre.prf \
 		../../../../Qt/6.3.1/macos/mkspecs/features/yacc.prf \
 		../../../../Qt/6.3.1/macos/mkspecs/features/lex.prf \
 		../../BenMaxGame.pro ../bullet.h \
+		../enemy.h \
 		../graphicsview.h \
 		../gun.h \
 		../mainwindow.h \
 		../player.h ../bullet.cpp \
+		../enemy.cpp \
 		../graphicsview.cpp \
 		../gun.cpp \
 		../main.cpp \
@@ -585,8 +589,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../images.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents ../bullet.h ../graphicsview.h ../gun.h ../mainwindow.h ../player.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../bullet.cpp ../graphicsview.cpp ../gun.cpp ../main.cpp ../mainwindow.cpp ../player.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../bullet.h ../enemy.h ../graphicsview.h ../gun.h ../mainwindow.h ../player.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../bullet.cpp ../enemy.cpp ../graphicsview.cpp ../gun.cpp ../main.cpp ../mainwindow.cpp ../player.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -626,11 +630,12 @@ compiler_moc_header_make_all: moc_graphicsview.cpp moc_mainwindow.cpp
 compiler_moc_header_clean:
 	-$(DEL_FILE) moc_graphicsview.cpp moc_mainwindow.cpp
 moc_graphicsview.cpp: ../graphicsview.h \
+		../enemy.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
 		../player.h \
 		../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../bullet.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
@@ -666,20 +671,29 @@ bullet.o: ../bullet.cpp ../bullet.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
 		../graphicsview.h \
+		../enemy.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../player.h \
 		../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o bullet.o ../bullet.cpp
 
+enemy.o: ../enemy.cpp ../enemy.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QRandomGenerator \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qrandom.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o enemy.o ../enemy.cpp
+
 graphicsview.o: ../graphicsview.cpp ../graphicsview.h \
+		../enemy.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
 		../player.h \
 		../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../bullet.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
@@ -692,11 +706,12 @@ gun.o: ../gun.cpp ../gun.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gun.o ../gun.cpp
 
 main.o: ../main.cpp ../graphicsview.h \
+		../enemy.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
 		../player.h \
 		../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../bullet.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \

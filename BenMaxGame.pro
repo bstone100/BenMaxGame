@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     bullet.cpp \
+    enemy.cpp \
     graphicsview.cpp \
     gun.cpp \
     main.cpp \
@@ -18,6 +19,7 @@ SOURCES += \
 
 HEADERS += \
     bullet.h \
+    enemy.h \
     graphicsview.h \
     gun.h \
     mainwindow.h \

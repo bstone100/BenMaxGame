@@ -16,6 +16,8 @@ Player::Player()
     right = false;
 
     gun = new Gun(this);
+
+//    setBrush(QBrush(Qt::blue));
 }
 
 void Player::advance(int step)

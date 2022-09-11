@@ -1,4 +1,5 @@
 #include "graphicsview.h"
+#include "QtCore/qrandom.h"
 #include "QtCore/qtimer.h"
 #include "QtGui/qevent.h"
 
@@ -17,12 +18,27 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     delayTimer->setSingleShot(true);
     QObject::connect(delayTimer, &QTimer::timeout, this, &GraphicsView::startFullAuto);
 
+    cleanUpTimer = new QTimer();
+    QObject::connect(cleanUpTimer, &QTimer::timeout, this, &GraphicsView::cleanUpScene);
+    cleanUpTimer->start(10);
+
+    bulletImpactTimer = new QTimer();
+    QObject::connect(bulletImpactTimer, &QTimer::timeout, this, &GraphicsView::bulletImpact);
+    bulletImpactTimer->start(10);
+
+    makeEnemyTimer = new QTimer();
+    QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &GraphicsView::generateEnemy);
+    makeEnemyTimer->start(500);
+
+
     xAxis = new QGraphicsLineItem(0, scene->height() / 2, scene->width(), scene->height() / 2);
     scene->addItem(xAxis);
     yAxis = new QGraphicsLineItem(scene->width() / 2, 0, scene->width() / 2, scene->height());
     scene->addItem(yAxis);
     box = new QGraphicsRectItem(scene->sceneRect());
     scene->addItem(box);
+
+//    scene->setBackgroundBrush(QBrush(Qt::black));
 }
 
 void GraphicsView::keyPressEvent(QKeyEvent *event)
@@ -104,6 +120,7 @@ void GraphicsView::resizeEvent(QResizeEvent *event)
     xAxis->setLine(0, scene()->height() / 2, scene()->width(), scene()->height() / 2);
     yAxis->setLine(scene()->width() / 2, 0, scene()->width() / 2, scene()->height());
     box->setRect(scene()->sceneRect());
+//    qDebug() << width() << " by " << height();
     QGraphicsView::resizeEvent(event);
 }
 
@@ -127,7 +144,76 @@ void GraphicsView::shoot()
 
 void GraphicsView::startFullAuto()
 {
-    shotsTimer->start(50);
+    shotsTimer->start(25);
+}
+
+// called on a timer
+void GraphicsView::cleanUpScene()
+{
+    int size = 150;
+    QRectF fullScene(-size, -size, scene()->width() + size * 2, scene()->height() + size * 2);
+
+    // delete bullets off the scene
+    for (int i = 0; i < bullets.size(); i++) {
+        Bullet *bullet = bullets.at(i);
+        QRectF bulletBorder(bullet->sceneBoundingRect());
+        bool contains = fullScene.contains(bulletBorder);
+        if (!contains) {
+            scene()->removeItem(bullet);
+            bullets.remove(i);
+            i--;
+            delete bullet;
+        }
+    }
+
+    // delete enemies off the scene
+    for (int i = 0; i < enemies.size(); i++) {
+        Enemy *enemy = enemies.at(i);
+        QRectF enemyBorder(enemy->sceneBoundingRect());
+        bool contains = fullScene.contains(enemyBorder);
+        if (!contains) {
+            scene()->removeItem(enemy);
+            enemies.remove(i);
+            i--;
+            delete enemy;
+        }
+    }
+}
+
+void GraphicsView::generateEnemy()
+{
+
+    QPointF startPoint(QRandomGenerator::system()->bounded(scene()->width()), 0);
+    Enemy *enemy = new Enemy(startPoint, playerCenter);
+    enemies.append(enemy);
+    scene()->addItem(enemy);
+}
+
+void GraphicsView::bulletImpact()
+{
+    for(int i = 0; i < enemies.size(); i++) {
+        Enemy *enemy = enemies.at(i);
+        QRectF enemyRect(enemy->sceneBoundingRect());
+
+        for(int j = 0; j < bullets.size(); j++) {
+            Bullet *bullet = bullets.at(j);
+            QRectF bulletRect(bullet->sceneBoundingRect());
+
+            if (enemyRect.intersects(bulletRect)) {
+                enemy->setHealth(enemy->getHealth() - bullet->getDamage());
+                scene()->removeItem(bullet);
+                bullets.remove(j);
+                j--;
+                delete bullet;
+            }
+        }
+        if (enemy->getHealth() <= 0) {
+            scene()->removeItem(enemy);
+            enemies.remove(i);
+            i--;
+            delete enemy;
+        }
+    }
 }
 
 void GraphicsView::moveGun()

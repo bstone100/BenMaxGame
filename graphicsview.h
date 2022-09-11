@@ -1,6 +1,7 @@
 #ifndef GRAPHICSVIEW_H
 #define GRAPHICSVIEW_H
 
+#include "enemy.h"
 #include "player.h"
 #include "bullet.h"
 #include <QGraphicsView>
@@ -26,7 +27,10 @@ public:
 
     void shoot();
     void startFullAuto();
-    void removeBullet(Bullet *bullet){bullets.removeOne(bullet);}
+    void cleanUpScene();
+    void generateEnemy();
+
+    void bulletImpact();
 
 public slots:
     void moveGun();
@@ -40,9 +44,13 @@ private:
 
     Player *player;
     QVector<Bullet *> bullets;
+    QVector<Enemy *> enemies;
 
     QTimer *shotsTimer;
     QTimer *delayTimer;
+    QTimer *cleanUpTimer;
+    QTimer *makeEnemyTimer;
+    QTimer *bulletImpactTimer;
 
     QGraphicsLineItem *xAxis;
     QGraphicsLineItem *yAxis;
