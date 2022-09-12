@@ -4,10 +4,10 @@
 #include "gun.h"
 #include <QGraphicsRectItem>
 
-class Player : public QGraphicsRectItem
+class Player : public QGraphicsPixmapItem
 {
 public:
-    Player();
+    Player(QGraphicsItem *parent = nullptr);
 
     bool getUp() const;
     void setUp(bool newUp);
@@ -27,6 +27,12 @@ public:
     Gun *getGun() const;
     void setGun(Gun *newGun);
 
+    int getHealth() const;
+    void setHealth(int newHealth);
+
+    int getStartHealth() const;
+    void setStartHealth(int newStartHealth);
+
 protected:
     void advance(int step) override;
 
@@ -35,6 +41,7 @@ private:
     int velo;
     bool up, down, left, right;
     Gun *gun;
+    int health, startHealth;
 };
 
 #endif // PLAYER_H

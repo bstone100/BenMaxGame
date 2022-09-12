@@ -9,9 +9,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-//    QSettings settings("BenMax Productions", "BenMaxGame");
-//    restoreGeometry(settings.value("geometry").toByteArray());
-//    restoreState(settings.value("windowState").toByteArray());
+    QSettings settings("BenMax Productions", "BenMaxGame");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
 }
 
 MainWindow::~MainWindow()

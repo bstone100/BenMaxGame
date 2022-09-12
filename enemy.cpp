@@ -1,6 +1,7 @@
 #include "enemy.h"
 #include "QRandomGenerator"
 #include "QtGui/qbrush.h"
+#include "healthbar.h"
 
 int sizes[] = {30, 50, 70, 90, 110, 130, 150};
 
@@ -13,12 +14,15 @@ Enemy::Enemy(QPointF startPoint, QPointF playerCenter)
     QLineF mouseLine(centerPoint, playerCenter);
     angle = qDegreesToRadians(mouseLine.angle());
 
-    setRect(0, 0, size, size);
+    QString image(":/images/madmax/madmax");
+    image += QString::number(size);
+    image += ".jpg";
+    setPixmap(QPixmap(image));
     setPos(startPoint);
 
-    startHealth = health = size;
+    startHealth = health = damage = size;
 
-//    setBrush(QBrush(Qt::red));
+    healthBar = new HealthBar(this);
 }
 
 void Enemy::advance(int step)
@@ -26,6 +30,16 @@ void Enemy::advance(int step)
     if (!step) return;
 
     moveBy(velo * cos(angle), -velo * sin(angle));
+}
+
+int Enemy::getDamage() const
+{
+    return damage;
+}
+
+void Enemy::setDamage(int newDamage)
+{
+    damage = newDamage;
 }
 
 int Enemy::getHealth() const

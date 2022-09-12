@@ -3,7 +3,9 @@
 
 #include <QGraphicsRectItem>
 
-class Enemy : public QGraphicsRectItem
+class HealthBar;
+
+class Enemy : public QGraphicsPixmapItem
 {
 public:
     Enemy(QPointF startPoint, QPointF playerCenter);
@@ -13,6 +15,9 @@ public:
 
     int getHealth() const;
     void setHealth(int newHealth);
+
+    int getDamage() const;
+    void setDamage(int newDamage);
 
 protected:
     void advance(int step) override;
@@ -24,6 +29,9 @@ private:
 
     int health;
     int startHealth;
+    HealthBar *healthBar;
+
+    int damage;
 };
 
 #endif // ENEMY_H

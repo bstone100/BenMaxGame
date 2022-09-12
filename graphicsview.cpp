@@ -2,43 +2,45 @@
 #include "QtCore/qrandom.h"
 #include "QtCore/qtimer.h"
 #include "QtGui/qevent.h"
+#include "healthbar.h"
 
 GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
 {
-    upHeld = false;
-    downHeld = false;
-    leftHeld = false;
-    rightHeld = false;
+    upHeld = downHeld = leftHeld = rightHeld = false;
+
+    mainTimer = new QTimer();
+    QObject::connect(mainTimer, &QTimer::timeout, this, &GraphicsView::mainFunction);
+    mainTimer->start(10);
 
     shotsTimer = new QTimer();
     QObject::connect(shotsTimer, &QTimer::timeout, this, &GraphicsView::shoot);
+    shotsTimer->setInterval(25);
 
     delayTimer = new QTimer();
     delayTimer->setSingleShot(true);
     QObject::connect(delayTimer, &QTimer::timeout, this, &GraphicsView::startFullAuto);
-
-    cleanUpTimer = new QTimer();
-    QObject::connect(cleanUpTimer, &QTimer::timeout, this, &GraphicsView::cleanUpScene);
-    cleanUpTimer->start(10);
-
-    bulletImpactTimer = new QTimer();
-    QObject::connect(bulletImpactTimer, &QTimer::timeout, this, &GraphicsView::bulletImpact);
-    bulletImpactTimer->start(10);
+    delayTimer->setInterval(250);
 
     makeEnemyTimer = new QTimer();
     QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &GraphicsView::generateEnemy);
     makeEnemyTimer->start(500);
 
+    player = new Player();
+    scene->addItem(player);
+    playerHealthBar = new HealthBar(player);
+    scene->addItem(playerHealthBar);
 
-    xAxis = new QGraphicsLineItem(0, scene->height() / 2, scene->width(), scene->height() / 2);
-    scene->addItem(xAxis);
-    yAxis = new QGraphicsLineItem(scene->width() / 2, 0, scene->width() / 2, scene->height());
-    scene->addItem(yAxis);
-    box = new QGraphicsRectItem(scene->sceneRect());
-    scene->addItem(box);
+    background = QPixmap(":/images/space3.jpg");
+}
 
-//    scene->setBackgroundBrush(QBrush(Qt::black));
+void GraphicsView::mainFunction()
+{
+    scene()->advance();
+    moveGun();
+    cleanUpScene();
+    bulletImpact();
+    enemyImpact();
 }
 
 void GraphicsView::keyPressEvent(QKeyEvent *event)
@@ -103,7 +105,7 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
     mouseMoveEvent(event);
 
     shoot();
-    delayTimer->start(250);
+    delayTimer->start();
 }
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
@@ -116,22 +118,17 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 
 void GraphicsView::resizeEvent(QResizeEvent *event)
 {
-    scene()->setSceneRect(0, 0, width(), height());
-    xAxis->setLine(0, scene()->height() / 2, scene()->width(), scene()->height() / 2);
-    yAxis->setLine(scene()->width() / 2, 0, scene()->width() / 2, scene()->height());
-    box->setRect(scene()->sceneRect());
-//    qDebug() << width() << " by " << height();
+    QRectF newSceneRect(0, 0, width(), height());
+    QPointF center(newSceneRect.center());
+    scene()->setSceneRect(newSceneRect);
+    scene()->setBackgroundBrush(QBrush(background.scaled(width(), height())));
+
+    QPointF playerAdjust(player->getSize() / 2, player->getSize() / 2);
+    player->setPos(center - playerAdjust);
+    playerHealthBar->setPos(newSceneRect.width() / 2 - 100, newSceneRect.height() - 50);
+    mouseTip = QPointF(width() / 2, 0);
+
     QGraphicsView::resizeEvent(event);
-}
-
-Player *GraphicsView::getPlayer() const
-{
-    return player;
-}
-
-void GraphicsView::setPlayer(Player *newPlayer)
-{
-    player = newPlayer;
 }
 
 void GraphicsView::shoot()
@@ -144,16 +141,13 @@ void GraphicsView::shoot()
 
 void GraphicsView::startFullAuto()
 {
-    shotsTimer->start(25);
+    shotsTimer->start();
 }
 
-// called on a timer
 void GraphicsView::cleanUpScene()
 {
     int size = 150;
     QRectF fullScene(-size, -size, scene()->width() + size * 2, scene()->height() + size * 2);
-
-    // delete bullets off the scene
     for (int i = 0; i < bullets.size(); i++) {
         Bullet *bullet = bullets.at(i);
         QRectF bulletBorder(bullet->sceneBoundingRect());
@@ -166,7 +160,6 @@ void GraphicsView::cleanUpScene()
         }
     }
 
-    // delete enemies off the scene
     for (int i = 0; i < enemies.size(); i++) {
         Enemy *enemy = enemies.at(i);
         QRectF enemyBorder(enemy->sceneBoundingRect());
@@ -182,7 +175,6 @@ void GraphicsView::cleanUpScene()
 
 void GraphicsView::generateEnemy()
 {
-
     QPointF startPoint(QRandomGenerator::system()->bounded(scene()->width()), 0);
     Enemy *enemy = new Enemy(startPoint, playerCenter);
     enemies.append(enemy);
@@ -191,14 +183,12 @@ void GraphicsView::generateEnemy()
 
 void GraphicsView::bulletImpact()
 {
-    for(int i = 0; i < enemies.size(); i++) {
+    for (int i = 0; i < enemies.size(); i++) {
         Enemy *enemy = enemies.at(i);
         QRectF enemyRect(enemy->sceneBoundingRect());
-
-        for(int j = 0; j < bullets.size(); j++) {
+        for (int j = 0; j < bullets.size(); j++) {
             Bullet *bullet = bullets.at(j);
             QRectF bulletRect(bullet->sceneBoundingRect());
-
             if (enemyRect.intersects(bulletRect)) {
                 enemy->setHealth(enemy->getHealth() - bullet->getDamage());
                 scene()->removeItem(bullet);
@@ -208,6 +198,26 @@ void GraphicsView::bulletImpact()
             }
         }
         if (enemy->getHealth() <= 0) {
+            scene()->removeItem(enemy);
+            enemies.remove(i);
+            i--;
+            delete enemy;
+        }
+    }
+}
+
+void GraphicsView::enemyImpact()
+{
+    QRectF playerRect(player->sceneBoundingRect());
+    for (int i = 0; i < enemies.size(); i++) {
+        Enemy *enemy = enemies.at(i);
+        QRectF enemyRect(enemy->sceneBoundingRect());
+        if (enemyRect.intersects(playerRect)) {
+            player->setHealth(player->getHealth() - enemy->getDamage());
+            if (player->getHealth() <= 0) {
+                player->setHealth(player->getStartHealth());
+            }
+            playerHealthBar->update();
             scene()->removeItem(enemy);
             enemies.remove(i);
             i--;
@@ -228,3 +238,5 @@ void GraphicsView::moveGun()
 
     player->getGun()->rotate(mouseAngle);
 }
+
+

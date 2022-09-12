@@ -1,5 +1,6 @@
 #include "gun.h"
 #include "QBrush"
+#include "QPen"
 
 Gun::Gun(QGraphicsItem *parent)
     : QGraphicsPolygonItem(parent)
@@ -17,7 +18,9 @@ Gun::Gun(QGraphicsItem *parent)
 
     setTransformOriginPoint(25, 25);
 
-//    setBrush(QBrush(Qt::blue));
+    setPen(Qt::NoPen);
+    setBrush(QBrush(Qt::white));
+
 }
 
 void Gun::rotate(qreal angle)

@@ -56,6 +56,7 @@ SOURCES       = ../bullet.cpp \
 		../enemy.cpp \
 		../graphicsview.cpp \
 		../gun.cpp \
+		../healthbar.cpp \
 		../main.cpp \
 		../mainwindow.cpp \
 		../player.cpp qrc_images.cpp \
@@ -65,6 +66,7 @@ OBJECTS       = bullet.o \
 		enemy.o \
 		graphicsview.o \
 		gun.o \
+		healthbar.o \
 		main.o \
 		mainwindow.o \
 		player.o \
@@ -222,11 +224,13 @@ DIST          = ../../../../Qt/6.3.1/macos/mkspecs/features/spec_pre.prf \
 		../enemy.h \
 		../graphicsview.h \
 		../gun.h \
+		../healthbar.h \
 		../mainwindow.h \
 		../player.h ../bullet.cpp \
 		../enemy.cpp \
 		../graphicsview.cpp \
 		../gun.cpp \
+		../healthbar.cpp \
 		../main.cpp \
 		../mainwindow.cpp \
 		../player.cpp
@@ -589,8 +593,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../images.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents ../bullet.h ../enemy.h ../graphicsview.h ../gun.h ../mainwindow.h ../player.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../bullet.cpp ../enemy.cpp ../graphicsview.cpp ../gun.cpp ../main.cpp ../mainwindow.cpp ../player.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../bullet.h ../enemy.h ../graphicsview.h ../gun.h ../healthbar.h ../mainwindow.h ../player.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../bullet.cpp ../enemy.cpp ../graphicsview.cpp ../gun.cpp ../healthbar.cpp ../main.cpp ../mainwindow.cpp ../player.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -623,7 +627,14 @@ qrc_images.cpp: ../images.qrc \
 		../../../Qt/6.3.1/macos/libexec/rcc \
 		../images/madmax.jpg \
 		../images/bstone1oo.jpg \
-		../images/space3.jpg
+		../images/space3.jpg \
+		../images/madmax/madmax50.jpg \
+		../images/madmax/madmax90.jpg \
+		../images/madmax/madmax130.jpg \
+		../images/madmax/madmax70.jpg \
+		../images/madmax/madmax30.jpg \
+		../images/madmax/madmax110.jpg \
+		../images/madmax/madmax150.jpg
 	/Users/benstone/Qt/6.3.1/macos/libexec/rcc -name images ../images.qrc -o qrc_images.cpp
 
 compiler_moc_header_make_all: moc_graphicsview.cpp moc_mainwindow.cpp
@@ -684,7 +695,9 @@ enemy.o: ../enemy.cpp ../enemy.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QRandomGenerator \
-		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qrandom.h
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qrandom.h \
+		../healthbar.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsItem
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o enemy.o ../enemy.cpp
 
 graphicsview.o: ../graphicsview.cpp ../graphicsview.h \
@@ -697,13 +710,31 @@ graphicsview.o: ../graphicsview.cpp ../graphicsview.h \
 		../bullet.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h \
+		../healthbar.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsItem
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o graphicsview.o ../graphicsview.cpp
 
 gun.o: ../gun.cpp ../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../../../Qt/6.3.1/macos/lib/QtGui.framework/Headers/QBrush \
+		../../../Qt/6.3.1/macos/lib/QtGui.framework/Headers/qbrush.h \
+		../../../Qt/6.3.1/macos/lib/QtGui.framework/Headers/QPen \
+		../../../Qt/6.3.1/macos/lib/QtGui.framework/Headers/qpen.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gun.o ../gun.cpp
+
+healthbar.o: ../healthbar.cpp ../healthbar.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsItem \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../enemy.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
+		../player.h \
+		../gun.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsScene \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsscene.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o healthbar.o ../healthbar.cpp
 
 main.o: ../main.cpp ../graphicsview.h \
 		../enemy.h \
@@ -716,9 +747,13 @@ main.o: ../main.cpp ../graphicsview.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h \
+		../healthbar.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsItem \
 		../mainwindow.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QMainWindow \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qmainwindow.h \
+		../../../Qt/6.3.1/macos/lib/QtGui.framework/Headers/QScreen \
+		../../../Qt/6.3.1/macos/lib/QtGui.framework/Headers/qscreen.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QApplication \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qapplication.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../main.cpp

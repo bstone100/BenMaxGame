@@ -13,6 +13,7 @@ SOURCES += \
     enemy.cpp \
     graphicsview.cpp \
     gun.cpp \
+    healthbar.cpp \
     main.cpp \
     mainwindow.cpp \
     player.cpp
@@ -22,6 +23,7 @@ HEADERS += \
     enemy.h \
     graphicsview.h \
     gun.h \
+    healthbar.h \
     mainwindow.h \
     player.h
 

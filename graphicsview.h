@@ -12,6 +12,8 @@ class GraphicsView : public QGraphicsView
 public:
     GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr);
 
+    void mainFunction();
+
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
 
@@ -22,17 +24,12 @@ public:
 
     void resizeEvent(QResizeEvent *event) override;
 
-    Player *getPlayer() const;
-    void setPlayer(Player *newPlayer);
-
     void shoot();
     void startFullAuto();
     void cleanUpScene();
     void generateEnemy();
-
     void bulletImpact();
-
-public slots:
+    void enemyImpact();
     void moveGun();
 
 private:
@@ -43,9 +40,11 @@ private:
     qreal mouseAngle;
 
     Player *player;
+    HealthBar *playerHealthBar;
     QVector<Bullet *> bullets;
     QVector<Enemy *> enemies;
 
+    QTimer *mainTimer;
     QTimer *shotsTimer;
     QTimer *delayTimer;
     QTimer *cleanUpTimer;
@@ -55,6 +54,8 @@ private:
     QGraphicsLineItem *xAxis;
     QGraphicsLineItem *yAxis;
     QGraphicsRectItem *box;
+
+    QPixmap background;
 };
 
 #endif // GRAPHICSVIEW_H

@@ -12,7 +12,8 @@ Bullet::Bullet(QPointF gunTip, qreal angle)
 
     damage = 20;
 
-//    setBrush(QBrush(Qt::green));
+    setPen(Qt::NoPen);
+    setBrush(QBrush(Qt::yellow));
 }
 
 void Bullet::advance(int step)

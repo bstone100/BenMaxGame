@@ -3,10 +3,11 @@
 #include "QDebug"
 #include "QtWidgets/qgraphicsscene.h"
 
-Player::Player()
+Player::Player(QGraphicsItem *parent)
+    : QGraphicsPixmapItem(parent)
 {
     size = 50;
-    setRect(0, 0, size, size);
+    setPixmap(QPixmap(":/images/bstone1oo.jpg"));
 
     velo = 5;
 
@@ -17,7 +18,7 @@ Player::Player()
 
     gun = new Gun(this);
 
-//    setBrush(QBrush(Qt::blue));
+    health = startHealth = 1000;
 }
 
 void Player::advance(int step)
@@ -32,6 +33,26 @@ void Player::advance(int step)
         moveBy(0, -velo);
     if (down && y() < scene()->height() - size)
         moveBy(0, velo);
+}
+
+int Player::getStartHealth() const
+{
+    return startHealth;
+}
+
+void Player::setStartHealth(int newStartHealth)
+{
+    startHealth = newStartHealth;
+}
+
+int Player::getHealth() const
+{
+    return health;
+}
+
+void Player::setHealth(int newHealth)
+{
+    health = newHealth;
 }
 
 Gun *Player::getGun() const
