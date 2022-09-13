@@ -37,8 +37,6 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
 
     scoreText = new QGraphicsTextItem(QString::number(score));
     scoreText->setDefaultTextColor(Qt::white);
-    scene->addItem(scoreText);
-    scoreText->setVisible(false);
 }
 
 void GraphicsView::mainFunction()
@@ -200,14 +198,14 @@ void GraphicsView::bulletImpact()
                 enemy->setHealth(enemy->getHealth() - bullet->getDamage());
                 bullets.remove(j);
                 j--;
-                delete bullet;
+                bullet->startExplosion();
             }
         }
         if (enemy->getHealth() <= 0) {
             setScore(score + enemy->getStartHealth());
             enemies.remove(i);
             i--;
-            delete enemy;
+            enemy->startExplosion();
         }
     }
 }
@@ -228,7 +226,7 @@ void GraphicsView::enemyImpact()
             playerHealthBar->update();
             enemies.remove(i);
             i--;
-            delete enemy;
+            enemy->startExplosion();
         }
     }
 }
@@ -268,7 +266,7 @@ void GraphicsView::gameStart()
     scene()->removeItem(title);
     scene()->addItem(player);
     scene()->addItem(playerHealthBar);
-    scoreText->setVisible(true);
+    scene()->addItem(scoreText);
 
     setEnabled(true);
 
@@ -283,8 +281,23 @@ void GraphicsView::gameEnd()
     qDeleteAll(bullets);
     bullets.clear();
 
+    // clean up any enemies still animating
+    auto s = scene()->items();
+    for (auto item: s) {
+        Enemy *enemy = dynamic_cast<Enemy *>(item);
+        if (enemy != NULL) {
+            delete enemy;
+            continue;
+        }
+        Bullet *bullet = dynamic_cast<Bullet *>(item);
+        if (bullet != NULL) {
+            delete bullet;
+        }
+    }
+
     scene()->removeItem(player);
     scene()->removeItem(playerHealthBar);
+    scene()->removeItem(scoreText);
     scene()->addItem(title);
 
     setEnabled(false);

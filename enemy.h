@@ -5,7 +5,7 @@
 
 class HealthBar;
 
-class Enemy : public QGraphicsPixmapItem
+class Enemy : public QObject, public QGraphicsPixmapItem
 {
 public:
     Enemy(QPointF startPoint, QPointF playerCenter, int velo);
@@ -25,6 +25,8 @@ public:
     int getVelo() const;
     void setVelo(int newVelo);
 
+    void startExplosion();
+
 protected:
     void advance(int step) override;
 
@@ -38,6 +40,9 @@ private:
     HealthBar *healthBar;
 
     int damage;
+
+    bool dead;
+    qreal scale;
 };
 
 #endif // ENEMY_H

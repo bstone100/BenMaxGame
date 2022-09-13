@@ -3,7 +3,7 @@
 
 #include <QGraphicsEllipseItem>
 
-class Bullet : public QGraphicsEllipseItem
+class Bullet : public QObject, public QGraphicsEllipseItem
 {
 public:
     Bullet(QPointF gunTip, qreal angle);
@@ -14,6 +14,8 @@ public:
     int getDamage() const;
     void setDamage(int newDamage);
 
+    void startExplosion();
+
 protected:
     void advance(int step) override;
 
@@ -23,6 +25,9 @@ private:
     qreal angle;
 
     int damage;
+
+    bool dead;
+    qreal scale;
 };
 
 #endif // BULLET_H
