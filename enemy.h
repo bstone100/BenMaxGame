@@ -8,7 +8,7 @@ class HealthBar;
 class Enemy : public QGraphicsPixmapItem
 {
 public:
-    Enemy(QPointF startPoint, QPointF playerCenter);
+    Enemy(QPointF startPoint, QPointF playerCenter, int velo);
 
     int getSize() const;
     void setSize(int newSize);
@@ -18,6 +18,12 @@ public:
 
     int getDamage() const;
     void setDamage(int newDamage);
+
+    int getStartHealth() const;
+    void setStartHealth(int newStartHealth);
+
+    int getVelo() const;
+    void setVelo(int newVelo);
 
 protected:
     void advance(int step) override;

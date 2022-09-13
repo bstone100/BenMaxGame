@@ -18,7 +18,7 @@ Player::Player(QGraphicsItem *parent)
 
     gun = new Gun(this);
 
-    health = startHealth = 1000;
+    health = startHealth = 500;
 }
 
 void Player::advance(int step)
@@ -43,6 +43,13 @@ int Player::getStartHealth() const
 void Player::setStartHealth(int newStartHealth)
 {
     startHealth = newStartHealth;
+}
+
+void Player::resetProperties()
+{
+    health = startHealth;
+    up = down = left = right = false;
+    gun->rotate(90);
 }
 
 int Player::getHealth() const

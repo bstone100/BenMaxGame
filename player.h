@@ -33,6 +33,8 @@ public:
     int getStartHealth() const;
     void setStartHealth(int newStartHealth);
 
+    void resetProperties();
+
 protected:
     void advance(int step) override;
 

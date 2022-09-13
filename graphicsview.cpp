@@ -7,15 +7,15 @@
 GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
 {
-    upHeld = downHeld = leftHeld = rightHeld = false;
+    setEnabled(false);
 
     mainTimer = new QTimer();
     QObject::connect(mainTimer, &QTimer::timeout, this, &GraphicsView::mainFunction);
-    mainTimer->start(10);
+    mainTimer->setInterval(10);
 
     shotsTimer = new QTimer();
     QObject::connect(shotsTimer, &QTimer::timeout, this, &GraphicsView::shoot);
-    shotsTimer->setInterval(25);
+    shotsTimer->setInterval(100);
 
     delayTimer = new QTimer();
     delayTimer->setSingleShot(true);
@@ -24,14 +24,21 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
 
     makeEnemyTimer = new QTimer();
     QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &GraphicsView::generateEnemy);
-    makeEnemyTimer->start(500);
+    makeEnemyTimer->setInterval(200);
 
     player = new Player();
-    scene->addItem(player);
     playerHealthBar = new HealthBar(player);
-    scene->addItem(playerHealthBar);
 
     background = QPixmap(":/images/space3.jpg");
+
+    title = new QGraphicsTextItem("BenMaxGame");
+    title->setDefaultTextColor(Qt::white);
+    scene->addItem(title);
+
+    scoreText = new QGraphicsTextItem(QString::number(score));
+    scoreText->setDefaultTextColor(Qt::white);
+    scene->addItem(scoreText);
+    scoreText->setVisible(false);
 }
 
 void GraphicsView::mainFunction()
@@ -119,14 +126,16 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 void GraphicsView::resizeEvent(QResizeEvent *event)
 {
     QRectF newSceneRect(0, 0, width(), height());
-    QPointF center(newSceneRect.center());
     scene()->setSceneRect(newSceneRect);
     scene()->setBackgroundBrush(QBrush(background.scaled(width(), height())));
 
-    QPointF playerAdjust(player->getSize() / 2, player->getSize() / 2);
-    player->setPos(center - playerAdjust);
-    playerHealthBar->setPos(newSceneRect.width() / 2 - 100, newSceneRect.height() - 50);
-    mouseTip = QPointF(width() / 2, 0);
+    setScene();
+
+    title->setFont(QFont("Arial", width() / 8, QFont::Bold));
+    title->setPos(width() / 2 - title->boundingRect().width() / 2, 30);
+
+    scoreText->setFont(QFont("Arial", width() / 20, QFont::Bold));
+    scoreText->setPos(30, height() - 100);
 
     QGraphicsView::resizeEvent(event);
 }
@@ -153,7 +162,6 @@ void GraphicsView::cleanUpScene()
         QRectF bulletBorder(bullet->sceneBoundingRect());
         bool contains = fullScene.contains(bulletBorder);
         if (!contains) {
-            scene()->removeItem(bullet);
             bullets.remove(i);
             i--;
             delete bullet;
@@ -165,7 +173,6 @@ void GraphicsView::cleanUpScene()
         QRectF enemyBorder(enemy->sceneBoundingRect());
         bool contains = fullScene.contains(enemyBorder);
         if (!contains) {
-            scene()->removeItem(enemy);
             enemies.remove(i);
             i--;
             delete enemy;
@@ -176,7 +183,7 @@ void GraphicsView::cleanUpScene()
 void GraphicsView::generateEnemy()
 {
     QPointF startPoint(QRandomGenerator::system()->bounded(scene()->width()), 0);
-    Enemy *enemy = new Enemy(startPoint, playerCenter);
+    Enemy *enemy = new Enemy(startPoint, playerCenter, enemyVelo);
     enemies.append(enemy);
     scene()->addItem(enemy);
 }
@@ -191,14 +198,13 @@ void GraphicsView::bulletImpact()
             QRectF bulletRect(bullet->sceneBoundingRect());
             if (enemyRect.intersects(bulletRect)) {
                 enemy->setHealth(enemy->getHealth() - bullet->getDamage());
-                scene()->removeItem(bullet);
                 bullets.remove(j);
                 j--;
                 delete bullet;
             }
         }
         if (enemy->getHealth() <= 0) {
-            scene()->removeItem(enemy);
+            setScore(score + enemy->getStartHealth());
             enemies.remove(i);
             i--;
             delete enemy;
@@ -214,11 +220,12 @@ void GraphicsView::enemyImpact()
         QRectF enemyRect(enemy->sceneBoundingRect());
         if (enemyRect.intersects(playerRect)) {
             player->setHealth(player->getHealth() - enemy->getDamage());
+            setScore(score + enemy->getStartHealth());
             if (player->getHealth() <= 0) {
-                player->setHealth(player->getStartHealth());
+                gameEnd();
+                return;
             }
             playerHealthBar->update();
-            scene()->removeItem(enemy);
             enemies.remove(i);
             i--;
             delete enemy;
@@ -237,6 +244,65 @@ void GraphicsView::moveGun()
     gunTip = mouseLine.pointAt(60 / mouseLine.length());
 
     player->getGun()->rotate(mouseAngle);
+}
+
+void GraphicsView::setScene()
+{
+    QRectF newSceneRect(0, 0, width(), height());
+    QPointF center(newSceneRect.center());
+    QPointF playerAdjust(player->getSize() / 2, player->getSize() / 2);
+    player->setPos(center - playerAdjust);
+    playerHealthBar->setPos(newSceneRect.width() / 2 - 100, newSceneRect.height() - 50);
+    mouseTip = QPointF(width() / 2, 0);
+}
+
+void GraphicsView::gameStart()
+{
+    setScore(0);
+    level = 0;
+    enemyVelo = 2;
+    upHeld = downHeld = leftHeld = rightHeld = false;
+    player->resetProperties();
+    setScene();
+
+    scene()->removeItem(title);
+    scene()->addItem(player);
+    scene()->addItem(playerHealthBar);
+    scoreText->setVisible(true);
+
+    setEnabled(true);
+
+    mainTimer->start();
+    makeEnemyTimer->start();
+}
+
+void GraphicsView::gameEnd()
+{
+    qDeleteAll(enemies);
+    enemies.clear();
+    qDeleteAll(bullets);
+    bullets.clear();
+
+    scene()->removeItem(player);
+    scene()->removeItem(playerHealthBar);
+    scene()->addItem(title);
+
+    setEnabled(false);
+
+    mainTimer->stop();
+    shotsTimer->stop();
+    delayTimer->stop();
+    makeEnemyTimer->stop();
+}
+
+void GraphicsView::setScore(int newScore)
+{
+    score = newScore;
+    scoreText->setPlainText(QString::number(score));
+    if (score >= level + 500) {
+        level += 500;
+        enemyVelo++;
+    }
 }
 
 

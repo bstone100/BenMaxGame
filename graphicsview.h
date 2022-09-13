@@ -32,6 +32,12 @@ public:
     void enemyImpact();
     void moveGun();
 
+    void setScene();
+    void gameStart();
+    void gameEnd();
+
+    void setScore(int newScore);
+
 private:
     bool upHeld, downHeld, leftHeld, rightHeld;
 
@@ -56,6 +62,13 @@ private:
     QGraphicsRectItem *box;
 
     QPixmap background;
+
+    QGraphicsTextItem *title;
+    QGraphicsTextItem *scoreText;
+
+    int score;
+    int enemyVelo;
+    int level;
 };
 
 #endif // GRAPHICSVIEW_H

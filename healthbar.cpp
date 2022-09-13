@@ -2,15 +2,14 @@
 #include "QtGui/qpainter.h"
 #include "enemy.h"
 #include "player.h"
-#include "QGraphicsScene"
 
 HealthBar::HealthBar(Enemy *enemy)
     : QGraphicsItem(enemy)
 {
     this->enemy = enemy;
     player = NULL;
-    fullRect = QRectF(0, 0, enemy->getSize(), 10);
-    healthRect = QRectF(0, 0, 0, 10);
+    fullRect = QRectF(0, 0, enemy->getSize(), 5);
+    healthRect = QRectF(0, 0, 0, 5);
     setPos(0, enemy->getSize() + 10);
 }
 

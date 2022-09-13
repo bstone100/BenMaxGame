@@ -5,9 +5,9 @@
 
 int sizes[] = {30, 50, 70, 90, 110, 130, 150};
 
-Enemy::Enemy(QPointF startPoint, QPointF playerCenter)
+Enemy::Enemy(QPointF startPoint, QPointF playerCenter, int velo)
 {
-    velo = 3;
+    this->velo = velo;
 
     size = sizes[QRandomGenerator::system()->bounded(7)];
     QPointF centerPoint(startPoint.x() + size / 2, startPoint.y() + size / 2);
@@ -30,6 +30,26 @@ void Enemy::advance(int step)
     if (!step) return;
 
     moveBy(velo * cos(angle), -velo * sin(angle));
+}
+
+int Enemy::getVelo() const
+{
+    return velo;
+}
+
+void Enemy::setVelo(int newVelo)
+{
+    velo = newVelo;
+}
+
+int Enemy::getStartHealth() const
+{
+    return startHealth;
+}
+
+void Enemy::setStartHealth(int newStartHealth)
+{
+    startHealth = newStartHealth;
 }
 
 int Enemy::getDamage() const
