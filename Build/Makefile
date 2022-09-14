@@ -53,6 +53,7 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = ../bullet.cpp \
+		../button.cpp \
 		../enemy.cpp \
 		../graphicsview.cpp \
 		../gun.cpp \
@@ -60,10 +61,11 @@ SOURCES       = ../bullet.cpp \
 		../main.cpp \
 		../mainwindow.cpp \
 		../player.cpp qrc_images.cpp \
-		moc_enemy.cpp \
+		moc_button.cpp \
 		moc_graphicsview.cpp \
 		moc_mainwindow.cpp
 OBJECTS       = bullet.o \
+		button.o \
 		enemy.o \
 		graphicsview.o \
 		gun.o \
@@ -72,7 +74,7 @@ OBJECTS       = bullet.o \
 		mainwindow.o \
 		player.o \
 		qrc_images.o \
-		moc_enemy.o \
+		moc_button.o \
 		moc_graphicsview.o \
 		moc_mainwindow.o
 DIST          = ../../../../Qt/6.3.1/macos/mkspecs/features/spec_pre.prf \
@@ -223,12 +225,14 @@ DIST          = ../../../../Qt/6.3.1/macos/mkspecs/features/spec_pre.prf \
 		../../../../Qt/6.3.1/macos/mkspecs/features/yacc.prf \
 		../../../../Qt/6.3.1/macos/mkspecs/features/lex.prf \
 		../../BenMaxGame.pro ../bullet.h \
+		../button.h \
 		../enemy.h \
 		../graphicsview.h \
 		../gun.h \
 		../healthbar.h \
 		../mainwindow.h \
 		../player.h ../bullet.cpp \
+		../button.cpp \
 		../enemy.cpp \
 		../graphicsview.cpp \
 		../gun.cpp \
@@ -595,8 +599,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../images.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents ../bullet.h ../enemy.h ../graphicsview.h ../gun.h ../healthbar.h ../mainwindow.h ../player.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../bullet.cpp ../enemy.cpp ../graphicsview.cpp ../gun.cpp ../healthbar.cpp ../main.cpp ../mainwindow.cpp ../player.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../bullet.h ../button.h ../enemy.h ../graphicsview.h ../gun.h ../healthbar.h ../mainwindow.h ../player.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../bullet.cpp ../button.cpp ../enemy.cpp ../graphicsview.cpp ../gun.cpp ../healthbar.cpp ../main.cpp ../mainwindow.cpp ../player.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -639,19 +643,20 @@ qrc_images.cpp: ../images.qrc \
 		../images/madmax/madmax150.jpg
 	/Users/benstone/Qt/6.3.1/macos/libexec/rcc -name images ../images.qrc -o qrc_images.cpp
 
-compiler_moc_header_make_all: moc_enemy.cpp moc_graphicsview.cpp moc_mainwindow.cpp
+compiler_moc_header_make_all: moc_button.cpp moc_graphicsview.cpp moc_mainwindow.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_enemy.cpp moc_graphicsview.cpp moc_mainwindow.cpp
-moc_enemy.cpp: ../enemy.h \
+	-$(DEL_FILE) moc_button.cpp moc_graphicsview.cpp moc_mainwindow.cpp
+moc_button.cpp: ../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
 		../../../Qt/6.3.1/macos/libexec/moc
-	/Users/benstone/Qt/6.3.1/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=199711L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=13 -D__clang_minor__=1 -D__clang_patchlevel__=6 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/benstone/Qt/6.3.1/macos/mkspecs/macx-clang -I/Users/benstone/Qt_Projects/BenMaxGame -I/Users/benstone/Qt/6.3.1/macos/lib/QtWidgets.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtGui.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/benstone/Qt/6.3.1/macos/lib ../enemy.h -o moc_enemy.cpp
+	/Users/benstone/Qt/6.3.1/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=199711L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=13 -D__clang_minor__=1 -D__clang_patchlevel__=6 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/benstone/Qt/6.3.1/macos/mkspecs/macx-clang -I/Users/benstone/Qt_Projects/BenMaxGame -I/Users/benstone/Qt/6.3.1/macos/lib/QtWidgets.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtGui.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/benstone/Qt/6.3.1/macos/lib ../button.h -o moc_button.cpp
 
 moc_graphicsview.cpp: ../graphicsview.h \
-		../enemy.h \
+		../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../enemy.h \
 		../player.h \
 		../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
@@ -690,14 +695,22 @@ bullet.o: ../bullet.cpp ../bullet.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
 		../graphicsview.h \
-		../enemy.h \
+		../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
+		../enemy.h \
 		../player.h \
 		../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o bullet.o ../bullet.cpp
+
+button.o: ../button.cpp ../button.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsSceneMouseEvent \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicssceneevent.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o button.o ../button.cpp
 
 enemy.o: ../enemy.cpp ../enemy.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
@@ -709,9 +722,10 @@ enemy.o: ../enemy.cpp ../enemy.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o enemy.o ../enemy.cpp
 
 graphicsview.o: ../graphicsview.cpp ../graphicsview.h \
-		../enemy.h \
+		../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../enemy.h \
 		../player.h \
 		../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
@@ -743,9 +757,10 @@ healthbar.o: ../healthbar.cpp ../healthbar.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o healthbar.o ../healthbar.cpp
 
 main.o: ../main.cpp ../graphicsview.h \
-		../enemy.h \
+		../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../enemy.h \
 		../player.h \
 		../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
@@ -798,8 +813,8 @@ player.o: ../player.cpp ../player.h \
 qrc_images.o: qrc_images.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_images.o qrc_images.cpp
 
-moc_enemy.o: moc_enemy.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_enemy.o moc_enemy.cpp
+moc_button.o: moc_button.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_button.o moc_button.cpp
 
 moc_graphicsview.o: moc_graphicsview.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_graphicsview.o moc_graphicsview.cpp

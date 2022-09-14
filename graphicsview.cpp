@@ -7,7 +7,8 @@
 GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
 {
-    setEnabled(false);
+//    setEnabled(false);
+    gameStarted = false;
 
     mainTimer = new QTimer();
     QObject::connect(mainTimer, &QTimer::timeout, this, &GraphicsView::mainFunction);
@@ -15,7 +16,7 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
 
     shotsTimer = new QTimer();
     QObject::connect(shotsTimer, &QTimer::timeout, this, &GraphicsView::shoot);
-    shotsTimer->setInterval(100);
+    shotsTimer->setInterval(50);
 
     delayTimer = new QTimer();
     delayTimer->setSingleShot(true);
@@ -37,6 +38,10 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
 
     scoreText = new QGraphicsTextItem(QString::number(score));
     scoreText->setDefaultTextColor(Qt::white);
+
+    playButton = new Button("Play");
+    scene->addItem(playButton);
+    QObject::connect(playButton, &Button::clicked, this, &GraphicsView::gameStart);
 }
 
 void GraphicsView::mainFunction()
@@ -50,6 +55,8 @@ void GraphicsView::mainFunction()
 
 void GraphicsView::keyPressEvent(QKeyEvent *event)
 {
+    if (!gameStarted) return;
+
     int key = event->key();
     if (key == Qt::Key_Left || key == Qt::Key_A) {
         player->setLeft(true);
@@ -72,6 +79,8 @@ void GraphicsView::keyPressEvent(QKeyEvent *event)
 
 void GraphicsView::keyReleaseEvent(QKeyEvent *event)
 {
+    if (!gameStarted) return;
+
     int key = event->key();
     if (key == Qt::Key_Left || key == Qt::Key_A) {
         player->setLeft(false);
@@ -99,6 +108,11 @@ void GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 
 void GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
+    if (!gameStarted) {
+        playButton->mouseMove(event->position());
+        return;
+    }
+
     mouseTip.setX(event->position().x());
     mouseTip.setY(event->position().y());
 
@@ -107,6 +121,11 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 void GraphicsView::mousePressEvent(QMouseEvent *event)
 {
+    if (!gameStarted) {
+        playButton->mousePress(event->position());
+        return;
+    }
+
     mouseMoveEvent(event);
 
     shoot();
@@ -115,6 +134,11 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (!gameStarted) {
+        playButton->mouseRelease();
+        return;
+    }
+
     mouseMoveEvent(event);
 
     shotsTimer->stop();
@@ -134,6 +158,10 @@ void GraphicsView::resizeEvent(QResizeEvent *event)
 
     scoreText->setFont(QFont("Arial", width() / 20, QFont::Bold));
     scoreText->setPos(30, height() - 100);
+
+    QPointF center(newSceneRect.center());
+    QPointF playButtonAdjust(playButton->rect().center());
+    playButton->setPos(center - playButtonAdjust);
 
     QGraphicsView::resizeEvent(event);
 }
@@ -264,11 +292,13 @@ void GraphicsView::gameStart()
     setScene();
 
     scene()->removeItem(title);
+    scene()->removeItem(playButton);
     scene()->addItem(player);
     scene()->addItem(playerHealthBar);
     scene()->addItem(scoreText);
 
-    setEnabled(true);
+//    setEnabled(true);
+    gameStarted = true;
 
     mainTimer->start();
     makeEnemyTimer->start();
@@ -299,8 +329,10 @@ void GraphicsView::gameEnd()
     scene()->removeItem(playerHealthBar);
     scene()->removeItem(scoreText);
     scene()->addItem(title);
+    scene()->addItem(playButton);
 
-    setEnabled(false);
+//    setEnabled(false);
+    gameStarted = false;
 
     mainTimer->stop();
     shotsTimer->stop();

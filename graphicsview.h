@@ -1,6 +1,7 @@
 #ifndef GRAPHICSVIEW_H
 #define GRAPHICSVIEW_H
 
+#include "button.h"
 #include "enemy.h"
 #include "player.h"
 #include "bullet.h"
@@ -69,6 +70,10 @@ private:
     int score;
     int enemyVelo;
     int level;
+
+    bool gameStarted;
+
+    Button *playButton;
 };
 
 #endif // GRAPHICSVIEW_H
