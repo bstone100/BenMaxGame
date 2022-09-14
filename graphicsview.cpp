@@ -1,5 +1,6 @@
 #include "graphicsview.h"
 #include "QtCore/qrandom.h"
+#include "QtCore/qsettings.h"
 #include "QtCore/qtimer.h"
 #include "QtGui/qevent.h"
 #include "healthbar.h"
@@ -7,7 +8,6 @@
 GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
 {
-//    setEnabled(false);
     gameStarted = false;
 
     mainTimer = new QTimer();
@@ -38,6 +38,15 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
 
     scoreText = new QGraphicsTextItem(QString::number(score));
     scoreText->setDefaultTextColor(Qt::white);
+    scene->addItem(scoreText);
+    scoreText->setVisible(false);
+
+    QSettings settings("BenMax Productions", "BenMaxGame");
+    highScore = 0;
+    highScore = settings.value("highScore").toInt();
+    highScoreText = new QGraphicsTextItem(QString::number(highScore));
+    highScoreText->setDefaultTextColor(Qt::white);
+    scene->addItem(highScoreText);
 
     playButton = new Button("Play");
     scene->addItem(playButton);
@@ -74,6 +83,9 @@ void GraphicsView::keyPressEvent(QKeyEvent *event)
         player->setDown(true);
         downHeld = true;
         player->setUp(false);
+    } else if (key == Qt::Key_N) {
+        qDeleteAll(enemies);
+        enemies.clear();
     }
 }
 
@@ -157,7 +169,12 @@ void GraphicsView::resizeEvent(QResizeEvent *event)
     title->setPos(width() / 2 - title->boundingRect().width() / 2, 30);
 
     scoreText->setFont(QFont("Arial", width() / 20, QFont::Bold));
-    scoreText->setPos(30, height() - 100);
+    QRectF scoreAdjust = scoreText->boundingRect();
+    scoreText->setPos(0, height() - scoreAdjust.height());
+
+    highScoreText->setFont(QFont("Arial", width() / 20, QFont::Bold));
+    QRectF highScoreAdjust = highScoreText->boundingRect();
+    highScoreText->setPos(width() - highScoreAdjust.width(), height() - highScoreAdjust.height());
 
     QPointF center(newSceneRect.center());
     QPointF playButtonAdjust(playButton->rect().center());
@@ -293,11 +310,11 @@ void GraphicsView::gameStart()
 
     scene()->removeItem(title);
     scene()->removeItem(playButton);
+    scene()->removeItem(highScoreText);
     scene()->addItem(player);
     scene()->addItem(playerHealthBar);
-    scene()->addItem(scoreText);
+    scoreText->setVisible(true);
 
-//    setEnabled(true);
     gameStarted = true;
 
     mainTimer->start();
@@ -327,17 +344,25 @@ void GraphicsView::gameEnd()
 
     scene()->removeItem(player);
     scene()->removeItem(playerHealthBar);
-    scene()->removeItem(scoreText);
     scene()->addItem(title);
     scene()->addItem(playButton);
+    scene()->addItem(highScoreText);
 
-//    setEnabled(false);
     gameStarted = false;
 
     mainTimer->stop();
     shotsTimer->stop();
     delayTimer->stop();
     makeEnemyTimer->stop();
+
+    if (score > highScore) {
+        highScore = score;
+        QSettings settings("BenMax Productions", "BenMaxGame");
+        settings.setValue("highScore", highScore);
+        highScoreText->setPlainText(QString::number(highScore));
+        QRectF highScoreAdjust = highScoreText->boundingRect();
+        highScoreText->setPos(width() - highScoreAdjust.width(), height() - highScoreAdjust.height());
+    }
 }
 
 void GraphicsView::setScore(int newScore)

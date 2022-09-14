@@ -32,9 +32,6 @@ void HealthBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidg
     painter->setBrush(Qt::white);
     painter->drawRect(fullRect);
 
-
-    painter->setBrush(QColorConstants::Svg::darkgreen);
-
     int health = 0;
     if (enemy) {
         health = enemy->getHealth();
@@ -42,6 +39,13 @@ void HealthBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidg
         health = (double)player->getHealth() / (double)player->getStartHealth() * fullRect.width();
     }
     healthRect.setWidth(health);
+
+    double percent = healthRect.width() / fullRect.width();
+    if (percent >= .2) {
+        painter->setBrush(QColorConstants::Svg::darkgreen);
+    } else {
+        painter->setBrush(Qt::red);
+    }
 
     if (health > 0)
         painter->drawRect(healthRect);

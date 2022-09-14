@@ -66,10 +66,12 @@ private:
 
     QGraphicsTextItem *title;
     QGraphicsTextItem *scoreText;
+    QGraphicsTextItem *highScoreText;
 
     int score;
     int enemyVelo;
     int level;
+    int highScore;
 
     bool gameStarted;
 

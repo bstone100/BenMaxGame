@@ -40,6 +40,12 @@ int main(int argc, char *argv[])
     QObject::connect(startAction, &QAction::triggered, &view, &GraphicsView::gameStart);
     fileMenu->addAction(startAction);
 
+
+    QAction *minimizeAction = new QAction("Minimize Window", fileMenu);
+    minimizeAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_M));
+    QObject::connect(minimizeAction, &QAction::triggered, w, &QMainWindow::showMinimized);
+    fileMenu->addAction(minimizeAction);
+
     QAction *closeAction = new QAction("Close Window", fileMenu);
     closeAction->setShortcuts(QKeySequence::Close);
     QObject::connect(closeAction, &QAction::triggered, w, &QMainWindow::close);
