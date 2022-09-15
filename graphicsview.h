@@ -74,6 +74,7 @@ private:
     int highScore;
 
     bool gameStarted;
+    bool gamePaused;
 
     Button *playButton;
 };

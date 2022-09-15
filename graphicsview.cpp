@@ -9,6 +9,7 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
 {
     gameStarted = false;
+    gamePaused = false;
 
     mainTimer = new QTimer();
     QObject::connect(mainTimer, &QTimer::timeout, this, &GraphicsView::mainFunction);
@@ -86,6 +87,18 @@ void GraphicsView::keyPressEvent(QKeyEvent *event)
     } else if (key == Qt::Key_N) {
         qDeleteAll(enemies);
         enemies.clear();
+    } else if (key == Qt::Key_Space) {
+        gamePaused = !gamePaused;
+        if (gamePaused) {
+            mainTimer->stop();
+            shotsTimer->stop();
+            delayTimer->stop();
+            makeEnemyTimer->stop();
+        } else {
+            mainTimer->start();
+            makeEnemyTimer->start();
+        }
+
     }
 }
 
@@ -124,6 +137,7 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
         playButton->mouseMove(event->position());
         return;
     }
+    if (gamePaused) return;
 
     mouseTip.setX(event->position().x());
     mouseTip.setY(event->position().y());
@@ -137,6 +151,7 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
         playButton->mousePress(event->position());
         return;
     }
+    if (gamePaused) return;
 
     mouseMoveEvent(event);
 
@@ -150,6 +165,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
         playButton->mouseRelease();
         return;
     }
+    if (gamePaused) return;
 
     mouseMoveEvent(event);
 
