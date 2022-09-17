@@ -9,6 +9,7 @@
 #include "player.h"
 #include "QScreen"
 #include "QPushButton"
+#include "QStyle"
 
 #include <QApplication>
 
@@ -39,7 +40,6 @@ int main(int argc, char *argv[])
     QAction *startAction = new QAction("Start Game", fileMenu);
     QObject::connect(startAction, &QAction::triggered, &view, &GraphicsView::gameStart);
     fileMenu->addAction(startAction);
-
 
     QAction *minimizeAction = new QAction("Minimize Window", fileMenu);
     minimizeAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_M));

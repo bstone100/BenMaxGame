@@ -15,6 +15,12 @@ public:
     void mousePress(QPointF pos);
     void mouseRelease();
 
+    bool getPressed() const;
+
+    void setButtonName(const QString &newButtonName);
+
+    void setIcon(const QPixmap &newIcon);
+
 signals:
     void clicked();
 
@@ -22,6 +28,8 @@ private:
     Qt::GlobalColor buttonColor;
     QString buttonName;
     bool pressed;
+    QPixmap icon;
+
 };
 
 #endif // BUTTON_H

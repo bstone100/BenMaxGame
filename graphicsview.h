@@ -36,6 +36,7 @@ public:
     void setScene();
     void gameStart();
     void gameEnd();
+    void gamePause();
 
     void setScore(int newScore);
 
@@ -77,6 +78,7 @@ private:
     bool gamePaused;
 
     Button *playButton;
+    Button *pauseButton;
 };
 
 #endif // GRAPHICSVIEW_H

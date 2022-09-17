@@ -16,11 +16,15 @@ void Button::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget 
 {
     painter->setPen(Qt::NoPen);
     painter->setBrush(buttonColor);
-    painter->drawRoundedRect(rect(), 20, 20);
+    painter->drawRoundedRect(rect(), rect().width() / 6, rect().width() / 6);
 
     painter->setPen(textColor);
-    painter->setFont(QFont("Arial", 50, QFont::Bold));
+    painter->setFont(QFont("Arial", rect().width() / 4, QFont::Bold));
     painter->drawText(rect(), Qt::AlignCenter, buttonName);
+
+    if (!icon.isNull())
+        painter->drawPixmap(rect(), icon, icon.rect());
+
 }
 
 void Button::mouseMove(QPointF pos)
@@ -51,5 +55,21 @@ void Button::mouseRelease()
             emit clicked();
         buttonColor = Qt::white;
         pressed = false;
+        update();
     }
+}
+
+bool Button::getPressed() const
+{
+    return pressed;
+}
+
+void Button::setButtonName(const QString &newButtonName)
+{
+    buttonName = newButtonName;
+}
+
+void Button::setIcon(const QPixmap &newIcon)
+{
+    icon = newIcon;
 }

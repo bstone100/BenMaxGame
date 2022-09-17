@@ -3,6 +3,7 @@
 #include "QtCore/qsettings.h"
 #include "QtCore/qtimer.h"
 #include "QtGui/qevent.h"
+#include "QtWidgets/qstyle.h"
 #include "healthbar.h"
 
 GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
@@ -52,6 +53,11 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     playButton = new Button("Play");
     scene->addItem(playButton);
     QObject::connect(playButton, &Button::clicked, this, &GraphicsView::gameStart);
+
+    pauseButton = new Button("II");
+    QObject::connect(pauseButton, &Button::clicked, this, &GraphicsView::gamePause);
+    pauseButton->setRect(0, 0, 100, 100);
+//    pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPause));
 }
 
 void GraphicsView::mainFunction()
@@ -88,17 +94,8 @@ void GraphicsView::keyPressEvent(QKeyEvent *event)
         qDeleteAll(enemies);
         enemies.clear();
     } else if (key == Qt::Key_Space) {
-        gamePaused = !gamePaused;
-        if (gamePaused) {
-            mainTimer->stop();
-            shotsTimer->stop();
-            delayTimer->stop();
-            makeEnemyTimer->stop();
-        } else {
-            mainTimer->start();
-            makeEnemyTimer->start();
-        }
-
+        pauseButton->mousePress(QPointF(pauseButton->sceneBoundingRect().center()));
+        pauseButton->mouseRelease();
     }
 }
 
@@ -123,7 +120,9 @@ void GraphicsView::keyReleaseEvent(QKeyEvent *event)
         player->setDown(false);
         downHeld = false;
         if (upHeld) player->setUp(true);
-    }
+    } /*else if (key == Qt::Key_Space) {
+        pauseButton->mouseRelease();
+    }*/
 }
 
 void GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
@@ -137,7 +136,10 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
         playButton->mouseMove(event->position());
         return;
     }
-    if (gamePaused) return;
+
+    pauseButton->mouseMove(event->position());
+
+    if (gamePaused || pauseButton->getPressed()) return;
 
     mouseTip.setX(event->position().x());
     mouseTip.setY(event->position().y());
@@ -151,7 +153,10 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
         playButton->mousePress(event->position());
         return;
     }
-    if (gamePaused) return;
+
+    pauseButton->mousePress(event->position());
+
+    if (gamePaused || pauseButton->getPressed()) return;
 
     mouseMoveEvent(event);
 
@@ -165,7 +170,10 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
         playButton->mouseRelease();
         return;
     }
-    if (gamePaused) return;
+
+    pauseButton->mouseRelease();
+
+    if (gamePaused || pauseButton->getPressed()) return;
 
     mouseMoveEvent(event);
 
@@ -192,9 +200,14 @@ void GraphicsView::resizeEvent(QResizeEvent *event)
     QRectF highScoreAdjust = highScoreText->boundingRect();
     highScoreText->setPos(width() - highScoreAdjust.width(), height() - highScoreAdjust.height());
 
+    playButton->setRect(0, 0, width() / 7, height() / 7);
     QPointF center(newSceneRect.center());
     QPointF playButtonAdjust(playButton->rect().center());
     playButton->setPos(center - playButtonAdjust);
+
+    pauseButton->setRect(0, 0, width() / 20, width() / 20);
+    QRectF pauseButtonAdjust = pauseButton->boundingRect();
+    pauseButton->setPos(width() - pauseButtonAdjust.width(), height() - pauseButtonAdjust.height());
 
     QGraphicsView::resizeEvent(event);
 }
@@ -329,6 +342,7 @@ void GraphicsView::gameStart()
     scene()->removeItem(highScoreText);
     scene()->addItem(player);
     scene()->addItem(playerHealthBar);
+    scene()->addItem(pauseButton);
     scoreText->setVisible(true);
 
     gameStarted = true;
@@ -360,6 +374,7 @@ void GraphicsView::gameEnd()
 
     scene()->removeItem(player);
     scene()->removeItem(playerHealthBar);
+    scene()->removeItem(pauseButton);
     scene()->addItem(title);
     scene()->addItem(playButton);
     scene()->addItem(highScoreText);
@@ -378,6 +393,24 @@ void GraphicsView::gameEnd()
         highScoreText->setPlainText(QString::number(highScore));
         QRectF highScoreAdjust = highScoreText->boundingRect();
         highScoreText->setPos(width() - highScoreAdjust.width(), height() - highScoreAdjust.height());
+    }
+}
+
+void GraphicsView::gamePause()
+{
+    gamePaused = !gamePaused;
+    if (gamePaused) {
+        mainTimer->stop();
+        shotsTimer->stop();
+        delayTimer->stop();
+        makeEnemyTimer->stop();
+        pauseButton->setButtonName(">");
+//        pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPlay));
+    } else {
+        mainTimer->start();
+        makeEnemyTimer->start();
+        pauseButton->setButtonName("II");
+//        pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPause));
     }
 }
 
