@@ -10,6 +10,7 @@ Button::Button(QString name)
     buttonName = name;
     buttonColor = Qt::white;
     pressed = false;
+    fontDivisor = 4;
 }
 
 void Button::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
@@ -19,7 +20,7 @@ void Button::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget 
     painter->drawRoundedRect(rect(), rect().width() / 6, rect().width() / 6);
 
     painter->setPen(textColor);
-    painter->setFont(QFont("Arial", rect().width() / 4, QFont::Bold));
+    painter->setFont(QFont("Arial", rect().width() / fontDivisor, QFont::Bold));
     painter->drawText(rect(), Qt::AlignCenter, buttonName);
 
     if (!icon.isNull())
@@ -72,4 +73,9 @@ void Button::setButtonName(const QString &newButtonName)
 void Button::setIcon(const QPixmap &newIcon)
 {
     icon = newIcon;
+}
+
+void Button::setFontDivisor(int newFontDivisor)
+{
+    fontDivisor = newFontDivisor;
 }

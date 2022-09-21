@@ -31,6 +31,7 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
 
     player = new Player();
     playerHealthBar = new HealthBar(player);
+    playerHealthBar->setZValue(1);
 
     background = QPixmap(":/images/space3.jpg");
 
@@ -42,6 +43,7 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     scoreText->setDefaultTextColor(Qt::white);
     scene->addItem(scoreText);
     scoreText->setVisible(false);
+    scoreText->setZValue(1);
 
     QSettings settings("BenMax Productions", "BenMaxGame");
     highScore = 0;
@@ -57,6 +59,8 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     pauseButton = new Button("II");
     QObject::connect(pauseButton, &Button::clicked, this, &GraphicsView::gamePause);
     pauseButton->setRect(0, 0, 100, 100);
+    pauseButton->setFontDivisor(2);
+    pauseButton->setZValue(1);
 //    pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPause));
 }
 

@@ -21,6 +21,8 @@ public:
 
     void setIcon(const QPixmap &newIcon);
 
+    void setFontDivisor(int newFontDivisor);
+
 signals:
     void clicked();
 
@@ -29,7 +31,7 @@ private:
     QString buttonName;
     bool pressed;
     QPixmap icon;
-
+    int fontDivisor;
 };
 
 #endif // BUTTON_H
