@@ -1,10 +1,15 @@
 #include "graphicsview.h"
+#include "QtCore/qjsondocument.h"
+#include "QtCore/qjsonobject.h"
 #include "QtCore/qrandom.h"
 #include "QtCore/qsettings.h"
 #include "QtCore/qtimer.h"
 #include "QtGui/qevent.h"
+#include "QtNetwork/qtcpsocket.h"
 #include "QtWidgets/qstyle.h"
 #include "healthbar.h"
+#include <QMessageBox>
+#include <QInputDialog>
 
 GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
@@ -54,7 +59,8 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
 
     playButton = new Button("Play");
     scene->addItem(playButton);
-    QObject::connect(playButton, &Button::clicked, this, &GraphicsView::gameStart);
+//    QObject::connect(playButton, &Button::clicked, this, &GraphicsView::gameStart);
+    QObject::connect(playButton, &Button::clicked, this, &GraphicsView::attemptConnection);
 
     pauseButton = new Button("II");
     QObject::connect(pauseButton, &Button::clicked, this, &GraphicsView::gamePause);
@@ -62,6 +68,19 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     pauseButton->setFontDivisor(2);
     pauseButton->setZValue(1);
 //    pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPause));
+
+    server = new ChatServer();
+    serverButton = new Button("Start Server");
+    serverButton->setRect(0, 0, 50, 50);
+    serverButton->setFontDivisor(6);
+    QObject::connect(serverButton, &Button::clicked, this, &GraphicsView::toggleStartServer);
+    scene->addItem(serverButton);
+
+    socket = new QTcpSocket();
+//    QObject::connect(socket, &QTcpSocket::connected, this, &GraphicsView::gameStart);
+    QObject::connect(socket, &QTcpSocket::connected, this, &GraphicsView::connectedToServer);
+    connect(socket, &QTcpSocket::disconnected, this, [this]()->void{m_loggedIn = false;});
+    connect(socket, &QTcpSocket::readyRead, this, &GraphicsView::onReadyRead);
 }
 
 void GraphicsView::mainFunction()
@@ -138,6 +157,7 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
     if (!gameStarted) {
         playButton->mouseMove(event->position());
+        serverButton->mouseMove(event->position());
         return;
     }
 
@@ -155,6 +175,7 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
 {
     if (!gameStarted) {
         playButton->mousePress(event->position());
+        serverButton->mousePress(event->position());
         return;
     }
 
@@ -172,6 +193,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 {
     if (!gameStarted) {
         playButton->mouseRelease();
+        serverButton->mouseRelease();
         return;
     }
 
@@ -212,6 +234,10 @@ void GraphicsView::resizeEvent(QResizeEvent *event)
     pauseButton->setRect(0, 0, width() / 20, width() / 20);
     QRectF pauseButtonAdjust = pauseButton->boundingRect();
     pauseButton->setPos(width() - pauseButtonAdjust.width(), height() - pauseButtonAdjust.height());
+
+    serverButton->setRect(0, 0, width() / 8, height() / 9);
+    QRectF serverButtonAdjust = serverButton->boundingRect();
+    serverButton->setPos(width() - serverButtonAdjust.width(), 0);
 
     QGraphicsView::resizeEvent(event);
 }
@@ -334,6 +360,8 @@ void GraphicsView::setScene()
 
 void GraphicsView::gameStart()
 {
+//    attemptConnection();
+
     setScore(0);
     level = 0;
     enemyVelo = 2;
@@ -344,6 +372,7 @@ void GraphicsView::gameStart()
     scene()->removeItem(title);
     scene()->removeItem(playButton);
     scene()->removeItem(highScoreText);
+    scene()->removeItem(serverButton);
     scene()->addItem(player);
     scene()->addItem(playerHealthBar);
     scene()->addItem(pauseButton);
@@ -357,6 +386,8 @@ void GraphicsView::gameStart()
 
 void GraphicsView::gameEnd()
 {
+    socket->disconnectFromHost();
+
     qDeleteAll(enemies);
     enemies.clear();
     qDeleteAll(bullets);
@@ -382,6 +413,7 @@ void GraphicsView::gameEnd()
     scene()->addItem(title);
     scene()->addItem(playButton);
     scene()->addItem(highScoreText);
+    scene()->addItem(serverButton);
 
     gameStarted = false;
 
@@ -426,6 +458,148 @@ void GraphicsView::setScore(int newScore)
         level += 500;
         enemyVelo++;
     }
+}
+
+
+void GraphicsView::toggleStartServer()
+{
+    if (server->isListening()) {
+        server->stopServer();
+        serverButton->setButtonName("Start Server");
+//        logMessage(QStringLiteral("Server Stopped"));
+    } else {
+        if (!server->listen(QHostAddress::Any, 1967)) {
+            QMessageBox::critical(this, tr("Error"), tr("Unable to start the server"));
+            return;
+        }
+//        logMessage(QStringLiteral("Server Started"));
+        serverButton->setButtonName("Stop Server");
+    }
+}
+
+
+void GraphicsView::attemptConnection()
+{
+    // We ask the user for the address of the server, we use 127.0.0.1 (aka localhost) as default
+    const QString hostAddress = QInputDialog::getText(
+        this
+        , tr("Chose Server")
+        , tr("Server Address")
+        , QLineEdit::Normal
+        , QStringLiteral("127.0.0.1")
+    );
+    if (hostAddress.isEmpty())
+        return; // the user pressed cancel or typed nothing
+    // tell the client to connect to the host using the port 1967
+    socket->connectToHost(QHostAddress(hostAddress), 1967);
+}
+
+void GraphicsView::connectedToServer()
+{
+    const QString newUsername = QInputDialog::getText(this, tr("Chose Username"), tr("Username"));
+    if (newUsername.isEmpty()){
+        // if the user clicked cancel or typed nothing, we just disconnect from the server
+        return socket->disconnectFromHost();
+    }
+    if (socket->state() == QAbstractSocket::ConnectedState) { // if the client is connected
+        // create a QDataStream operating on the socket
+        QDataStream clientStream(socket);
+        // set the version so that programs compiled with different versions of Qt can agree on how to serialise
+        clientStream.setVersion(QDataStream::Qt_5_7);
+        // Create the JSON we want to send
+        QJsonObject message;
+        message[QStringLiteral("type")] = QStringLiteral("login");
+        message[QStringLiteral("username")] = newUsername;
+        // send the JSON using QDataStream
+        clientStream << QJsonDocument(message).toJson(QJsonDocument::Compact);
+    }
+}
+
+void GraphicsView::onReadyRead()
+{
+    // prepare a container to hold the UTF-8 encoded JSON we receive from the socket
+    QByteArray jsonData;
+    // create a QDataStream operating on the socket
+    QDataStream socketStream(socket);
+    // set the version so that programs compiled with different versions of Qt can agree on how to serialise
+    socketStream.setVersion(QDataStream::Qt_5_7);
+    // start an infinite loop
+    for (;;) {
+        // we start a transaction so we can revert to the previous state in case we try to read more data than is available on the socket
+        socketStream.startTransaction();
+        // we try to read the JSON data
+        socketStream >> jsonData;
+        if (socketStream.commitTransaction()) {
+            // we successfully read some data
+            // we now need to make sure it's in fact a valid JSON
+            QJsonParseError parseError;
+            // we try to create a json document with the data we received
+            const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &parseError);
+            if (parseError.error == QJsonParseError::NoError) {
+                // if the data was indeed valid JSON
+                if (jsonDoc.isObject()) // and is a JSON object
+                    jsonReceived(jsonDoc.object()); // parse the JSON
+            }
+            // loop and try to read more JSONs if they are available
+        } else {
+            // the read failed, the socket goes automatically back to the state it was in before the transaction started
+            // we just exit the loop and wait for more data to become available
+            break;
+        }
+    }
+}
+
+void GraphicsView::jsonReceived(const QJsonObject &docObj)
+{
+    // actions depend on the type of message
+    const QJsonValue typeVal = docObj.value(QLatin1String("type"));
+    if (typeVal.isNull() || !typeVal.isString())
+        return; // a message with no type was received so we just ignore it
+    if (typeVal.toString().compare(QLatin1String("login"), Qt::CaseInsensitive) == 0) { //It's a login message
+        if (m_loggedIn)
+            return; // if we are already logged in we ignore
+        // the success field will contain the result of our attempt to login
+        const QJsonValue resultVal = docObj.value(QLatin1String("success"));
+        if (resultVal.isNull() || !resultVal.isBool())
+            return; // the message had no success field so we ignore
+        const bool loginSuccess = resultVal.toBool();
+        if (loginSuccess) {
+            // we logged in succesfully and we notify it via the loggedIn signal
+//            emit loggedIn();
+            gameStart();
+            return;
+        }
+        // the login attempt failed, we extract the reason of the failure from the JSON
+        // and notify it via the loginError signal
+        const QJsonValue reasonVal = docObj.value(QLatin1String("reason"));
+//        emit loginError(reasonVal.toString());
+        connectedToServer();
+    } /*else if (typeVal.toString().compare(QLatin1String("message"), Qt::CaseInsensitive) == 0) { //It's a chat message
+        // we extract the text field containing the chat text
+        const QJsonValue textVal = docObj.value(QLatin1String("text"));
+        // we extract the sender field containing the username of the sender
+        const QJsonValue senderVal = docObj.value(QLatin1String("sender"));
+        if (textVal.isNull() || !textVal.isString())
+            return; // the text field was invalid so we ignore
+        if (senderVal.isNull() || !senderVal.isString())
+            return; // the sender field was invalid so we ignore
+        // we notify a new message was received via the messageReceived signal
+        emit messageReceived(senderVal.toString(), textVal.toString());
+    }*/ /*else if (typeVal.toString().compare(QLatin1String("newuser"), Qt::CaseInsensitive) == 0) { // A user joined the chat
+        // we extract the username of the new user
+        const QJsonValue usernameVal = docObj.value(QLatin1String("username"));
+        if (usernameVal.isNull() || !usernameVal.isString())
+            return; // the username was invalid so we ignore
+        // we notify of the new user via the userJoined signal
+        emit userJoined(usernameVal.toString());
+    } else if (typeVal.toString().compare(QLatin1String("userdisconnected"), Qt::CaseInsensitive) == 0) { // A user left the chat
+         // we extract the username of the new user
+        const QJsonValue usernameVal = docObj.value(QLatin1String("username"));
+        if (usernameVal.isNull() || !usernameVal.isString())
+            return; // the username was invalid so we ignore
+        // we notify of the user disconnection the userLeft signal
+        emit userLeft(usernameVal.toString());
+    }*/
 }
 
 

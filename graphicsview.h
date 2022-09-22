@@ -2,6 +2,7 @@
 #define GRAPHICSVIEW_H
 
 #include "button.h"
+#include "chatserver.h"
 #include "enemy.h"
 #include "player.h"
 #include "bullet.h"
@@ -39,6 +40,14 @@ public:
     void gamePause();
 
     void setScore(int newScore);
+
+
+    void toggleStartServer();
+    void attemptConnection();
+    void connectedToServer();
+    void onReadyRead();
+    void jsonReceived(const QJsonObject &docObj);
+
 
 private:
     bool upHeld, downHeld, leftHeld, rightHeld;
@@ -79,6 +88,12 @@ private:
 
     Button *playButton;
     Button *pauseButton;
+    Button *serverButton;
+
+    ChatServer *server;
+    QTcpSocket *socket;
+
+    bool m_loggedIn;
 };
 
 #endif // GRAPHICSVIEW_H
