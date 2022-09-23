@@ -54,7 +54,9 @@ OBJECTS_DIR   = ./
 
 SOURCES       = ../bullet.cpp \
 		../button.cpp \
+		../chatclient.cpp \
 		../chatserver.cpp \
+		../chatwindow.cpp \
 		../enemy.cpp \
 		../graphicsview.cpp \
 		../gun.cpp \
@@ -64,13 +66,17 @@ SOURCES       = ../bullet.cpp \
 		../player.cpp \
 		../serverworker.cpp qrc_images.cpp \
 		moc_button.cpp \
+		moc_chatclient.cpp \
 		moc_chatserver.cpp \
+		moc_chatwindow.cpp \
 		moc_graphicsview.cpp \
 		moc_mainwindow.cpp \
 		moc_serverworker.cpp
 OBJECTS       = bullet.o \
 		button.o \
+		chatclient.o \
 		chatserver.o \
+		chatwindow.o \
 		enemy.o \
 		graphicsview.o \
 		gun.o \
@@ -81,7 +87,9 @@ OBJECTS       = bullet.o \
 		serverworker.o \
 		qrc_images.o \
 		moc_button.o \
+		moc_chatclient.o \
 		moc_chatserver.o \
+		moc_chatwindow.o \
 		moc_graphicsview.o \
 		moc_mainwindow.o \
 		moc_serverworker.o
@@ -234,7 +242,9 @@ DIST          = ../../../../Qt/6.3.1/macos/mkspecs/features/spec_pre.prf \
 		../../../../Qt/6.3.1/macos/mkspecs/features/lex.prf \
 		../../BenMaxGame.pro ../bullet.h \
 		../button.h \
+		../chatclient.h \
 		../chatserver.h \
+		../chatwindow.h \
 		../enemy.h \
 		../graphicsview.h \
 		../gun.h \
@@ -243,7 +253,9 @@ DIST          = ../../../../Qt/6.3.1/macos/mkspecs/features/spec_pre.prf \
 		../player.h \
 		../serverworker.h ../bullet.cpp \
 		../button.cpp \
+		../chatclient.cpp \
 		../chatserver.cpp \
+		../chatwindow.cpp \
 		../enemy.cpp \
 		../graphicsview.cpp \
 		../gun.cpp \
@@ -613,8 +625,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../images.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents ../bullet.h ../button.h ../chatserver.h ../enemy.h ../graphicsview.h ../gun.h ../healthbar.h ../mainwindow.h ../player.h ../serverworker.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../bullet.cpp ../button.cpp ../chatserver.cpp ../enemy.cpp ../graphicsview.cpp ../gun.cpp ../healthbar.cpp ../main.cpp ../mainwindow.cpp ../player.cpp ../serverworker.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../bullet.h ../button.h ../chatclient.h ../chatserver.h ../chatwindow.h ../enemy.h ../graphicsview.h ../gun.h ../healthbar.h ../mainwindow.h ../player.h ../serverworker.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../bullet.cpp ../button.cpp ../chatclient.cpp ../chatserver.cpp ../chatwindow.cpp ../enemy.cpp ../graphicsview.cpp ../gun.cpp ../healthbar.cpp ../main.cpp ../mainwindow.cpp ../player.cpp ../serverworker.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -657,27 +669,58 @@ qrc_images.cpp: ../images.qrc \
 		../images/madmax/madmax150.jpg
 	/Users/benstone/Qt/6.3.1/macos/libexec/rcc -name images ../images.qrc -o qrc_images.cpp
 
-compiler_moc_header_make_all: moc_button.cpp moc_chatserver.cpp moc_graphicsview.cpp moc_mainwindow.cpp moc_serverworker.cpp
+compiler_moc_header_make_all: moc_button.cpp moc_chatclient.cpp moc_chatserver.cpp moc_chatwindow.cpp moc_graphicsview.cpp moc_mainwindow.cpp moc_serverworker.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_button.cpp moc_chatserver.cpp moc_graphicsview.cpp moc_mainwindow.cpp moc_serverworker.cpp
+	-$(DEL_FILE) moc_button.cpp moc_chatclient.cpp moc_chatserver.cpp moc_chatwindow.cpp moc_graphicsview.cpp moc_mainwindow.cpp moc_serverworker.cpp
 moc_button.cpp: ../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
 		../../../Qt/6.3.1/macos/libexec/moc
 	/Users/benstone/Qt/6.3.1/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=199711L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=13 -D__clang_minor__=1 -D__clang_patchlevel__=6 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/benstone/Qt/6.3.1/macos/mkspecs/macx-clang -I/Users/benstone/Qt_Projects/BenMaxGame -I/Users/benstone/Qt/6.3.1/macos/lib/QtWidgets.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtGui.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/benstone/Qt/6.3.1/macos/lib ../button.h -o moc_button.cpp
 
+moc_chatclient.cpp: ../chatclient.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QObject \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qobject.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		../../../Qt/6.3.1/macos/libexec/moc
+	/Users/benstone/Qt/6.3.1/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=199711L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=13 -D__clang_minor__=1 -D__clang_patchlevel__=6 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/benstone/Qt/6.3.1/macos/mkspecs/macx-clang -I/Users/benstone/Qt_Projects/BenMaxGame -I/Users/benstone/Qt/6.3.1/macos/lib/QtWidgets.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtGui.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/benstone/Qt/6.3.1/macos/lib ../chatclient.h -o moc_chatclient.cpp
+
 moc_chatserver.cpp: ../chatserver.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpserver.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpsocket.h \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QVector \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qvector.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpServer \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpserver.h \
 		../../../Qt/6.3.1/macos/libexec/moc
 	/Users/benstone/Qt/6.3.1/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=199711L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=13 -D__clang_minor__=1 -D__clang_patchlevel__=6 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/benstone/Qt/6.3.1/macos/mkspecs/macx-clang -I/Users/benstone/Qt_Projects/BenMaxGame -I/Users/benstone/Qt/6.3.1/macos/lib/QtWidgets.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtGui.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/benstone/Qt/6.3.1/macos/lib ../chatserver.h -o moc_chatserver.cpp
+
+moc_chatwindow.cpp: ../chatwindow.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QWidget \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QAbstractSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qabstractsocket.h \
+		../../../Qt/6.3.1/macos/libexec/moc
+	/Users/benstone/Qt/6.3.1/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=199711L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=13 -D__clang_minor__=1 -D__clang_patchlevel__=6 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/benstone/Qt/6.3.1/macos/mkspecs/macx-clang -I/Users/benstone/Qt_Projects/BenMaxGame -I/Users/benstone/Qt/6.3.1/macos/lib/QtWidgets.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtGui.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/benstone/Qt/6.3.1/macos/lib ../chatwindow.h -o moc_chatwindow.cpp
 
 moc_graphicsview.cpp: ../graphicsview.h \
 		../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../chatclient.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QObject \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qobject.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		../chatserver.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QVector \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qvector.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpServer \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpserver.h \
+		../chatwindow.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QWidget \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QAbstractSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qabstractsocket.h \
 		../enemy.h \
 		../player.h \
 		../gun.h \
@@ -686,7 +729,6 @@ moc_graphicsview.cpp: ../graphicsview.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpserver.h \
 		../../../Qt/6.3.1/macos/libexec/moc
 	/Users/benstone/Qt/6.3.1/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=199711L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=13 -D__clang_minor__=1 -D__clang_patchlevel__=6 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/benstone/Qt/6.3.1/macos/mkspecs/macx-clang -I/Users/benstone/Qt_Projects/BenMaxGame -I/Users/benstone/Qt/6.3.1/macos/lib/QtWidgets.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtGui.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Headers -I/Users/benstone/Qt/6.3.1/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/benstone/Qt/6.3.1/macos/lib ../graphicsview.h -o moc_graphicsview.cpp
 
@@ -728,13 +770,27 @@ bullet.o: ../bullet.cpp ../bullet.h \
 		../graphicsview.h \
 		../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
+		../chatclient.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QObject \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qobject.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		../chatserver.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QVector \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qvector.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpServer \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpserver.h \
+		../chatwindow.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QWidget \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QAbstractSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qabstractsocket.h \
 		../enemy.h \
 		../player.h \
 		../gun.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsPolygonItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpserver.h
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o bullet.o ../bullet.cpp
 
 button.o: ../button.cpp ../button.h \
@@ -744,11 +800,27 @@ button.o: ../button.cpp ../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicssceneevent.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o button.o ../button.cpp
 
+chatclient.o: ../chatclient.cpp ../chatclient.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QObject \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qobject.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QDataStream \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qdatastream.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QJsonParseError \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qjsondocument.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QJsonDocument \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QJsonObject \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qjsonobject.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QJsonValue \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qjsonvalue.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o chatclient.o ../chatclient.cpp
+
 chatserver.o: ../chatserver.cpp ../chatserver.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpserver.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpsocket.h \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QVector \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qvector.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpServer \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpserver.h \
 		../serverworker.h \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QObject \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qobject.h \
@@ -766,6 +838,26 @@ chatserver.o: ../chatserver.cpp ../chatserver.h \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qtimer.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o chatserver.o ../chatserver.cpp
 
+chatwindow.o: ../chatwindow.cpp ../chatwindow.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QWidget \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QAbstractSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qabstractsocket.h \
+		../chatclient.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QObject \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qobject.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		../../../Qt/6.3.1/macos/lib/QtGui.framework/Headers/QStandardItemModel \
+		../../../Qt/6.3.1/macos/lib/QtGui.framework/Headers/qstandarditemmodel.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QInputDialog \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qinputdialog.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QMessageBox \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QHostAddress \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qhostaddress.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o chatwindow.o ../chatwindow.cpp
+
 enemy.o: ../enemy.cpp ../enemy.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
@@ -779,6 +871,21 @@ graphicsview.o: ../graphicsview.cpp ../graphicsview.h \
 		../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../chatclient.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QObject \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qobject.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		../chatserver.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QVector \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qvector.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpServer \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpserver.h \
+		../chatwindow.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QWidget \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QAbstractSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qabstractsocket.h \
 		../enemy.h \
 		../player.h \
 		../gun.h \
@@ -787,9 +894,12 @@ graphicsview.o: ../graphicsview.cpp ../graphicsview.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpserver.h \
 		../healthbar.h \
-		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsItem
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsItem \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QMessageBox \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QInputDialog \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qinputdialog.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o graphicsview.o ../graphicsview.cpp
 
 gun.o: ../gun.cpp ../gun.h \
@@ -815,6 +925,21 @@ main.o: ../main.cpp ../graphicsview.h \
 		../button.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsRectItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsitem.h \
+		../chatclient.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QObject \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qobject.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		../chatserver.h \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QVector \
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qvector.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QTcpServer \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qtcpserver.h \
+		../chatwindow.h \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QWidget \
+		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/QAbstractSocket \
+		../../../Qt/6.3.1/macos/lib/QtNetwork.framework/Headers/qabstractsocket.h \
 		../enemy.h \
 		../player.h \
 		../gun.h \
@@ -823,7 +948,6 @@ main.o: ../main.cpp ../graphicsview.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsEllipseItem \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsView \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/qgraphicsview.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpserver.h \
 		../healthbar.h \
 		../../../Qt/6.3.1/macos/lib/QtWidgets.framework/Headers/QGraphicsItem \
 		../mainwindow.h \
@@ -879,9 +1003,7 @@ serverworker.o: ../serverworker.cpp ../serverworker.h \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qjsondocument.h \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QJsonParseError \
 		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/QJsonObject \
-		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qjsonobject.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpserver.h \
-		/Users/benstone/Qt/6.3.1/macos/lib/QtNetwork.framework/Versions/A/Headers/qtcpsocket.h
+		../../../Qt/6.3.1/macos/lib/QtCore.framework/Headers/qjsonobject.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o serverworker.o ../serverworker.cpp
 
 qrc_images.o: qrc_images.cpp 
@@ -890,8 +1012,14 @@ qrc_images.o: qrc_images.cpp
 moc_button.o: moc_button.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_button.o moc_button.cpp
 
+moc_chatclient.o: moc_chatclient.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_chatclient.o moc_chatclient.cpp
+
 moc_chatserver.o: moc_chatserver.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_chatserver.o moc_chatserver.cpp
+
+moc_chatwindow.o: moc_chatwindow.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_chatwindow.o moc_chatwindow.cpp
 
 moc_graphicsview.o: moc_graphicsview.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_graphicsview.o moc_graphicsview.cpp

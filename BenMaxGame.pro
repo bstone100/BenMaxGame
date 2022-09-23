@@ -11,7 +11,9 @@ CONFIG += c++17
 SOURCES += \
     bullet.cpp \
     button.cpp \
+    chatclient.cpp \
     chatserver.cpp \
+    chatwindow.cpp \
     enemy.cpp \
     graphicsview.cpp \
     gun.cpp \
@@ -24,7 +26,9 @@ SOURCES += \
 HEADERS += \
     bullet.h \
     button.h \
+    chatclient.h \
     chatserver.h \
+    chatwindow.h \
     enemy.h \
     graphicsview.h \
     gun.h \

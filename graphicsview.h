@@ -2,7 +2,9 @@
 #define GRAPHICSVIEW_H
 
 #include "button.h"
+#include "chatclient.h"
 #include "chatserver.h"
+#include "chatwindow.h"
 #include "enemy.h"
 #include "player.h"
 #include "bullet.h"
@@ -41,13 +43,8 @@ public:
 
     void setScore(int newScore);
 
-
     void toggleStartServer();
-    void attemptConnection();
-    void connectedToServer();
-    void onReadyRead();
-    void jsonReceived(const QJsonObject &docObj);
-
+    void addPlayer();
 
 private:
     bool upHeld, downHeld, leftHeld, rightHeld;
@@ -60,6 +57,7 @@ private:
     HealthBar *playerHealthBar;
     QVector<Bullet *> bullets;
     QVector<Enemy *> enemies;
+    QVector<Player *> otherPlayers;
 
     QTimer *mainTimer;
     QTimer *shotsTimer;
@@ -91,9 +89,8 @@ private:
     Button *serverButton;
 
     ChatServer *server;
-    QTcpSocket *socket;
+    ChatWindow *chatWindow;
 
-    bool m_loggedIn;
 };
 
 #endif // GRAPHICSVIEW_H
