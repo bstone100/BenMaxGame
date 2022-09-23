@@ -26,7 +26,7 @@ public slots:
     void loggedIn();
     void loginFailed(const QString &reason);
     void messageReceived(const QString &sender, const QString &text);
-    void sendMessage(const QString &text);
+    void sendMessage(const QPointF &pos);
     void disconnectedFromServer();
     void userJoined(const QString &username);
     void userLeft(const QString &username);

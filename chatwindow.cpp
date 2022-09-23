@@ -78,10 +78,10 @@ void ChatWindow::messageReceived(const QString &sender, const QString &text)
 
 }
 
-void ChatWindow::sendMessage(const QString &text)
+void ChatWindow::sendMessage(const QPointF &pos)
 {
     // we use the client to send the message that the user typed
-    m_chatClient->sendMessage(text);
+    m_chatClient->sendMessage(pos);
 }
 
 void ChatWindow::disconnectedFromServer()

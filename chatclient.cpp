@@ -42,20 +42,20 @@ void ChatClient::login(const QString &userName)
     }
 }
 
-void ChatClient::sendMessage(const QString &text)
+// for now, just send position of player
+void ChatClient::sendMessage(const QPointF &pos)
 {
-    if (text.isEmpty())
-        return; // We don't send empty messages
     // create a QDataStream operating on the socket
     QDataStream clientStream(m_clientSocket);
     // set the version so that programs compiled with different versions of Qt can agree on how to serialise
     clientStream.setVersion(QDataStream::Qt_5_7);
     // Create the JSON we want to send
-    QJsonObject message;
-    message[QStringLiteral("type")] = QStringLiteral("message");
-    message[QStringLiteral("text")] = text;
-    // send the JSON using QDataStream
-    clientStream << QJsonDocument(message).toJson();
+//    QJsonObject position;
+//    position[QStringLiteral("type")] = QStringLiteral("position");
+//    position[QStringLiteral("data")] = pos;
+//    // send the JSON using QDataStream
+//    clientStream << QJsonDocument(message).toJson();
+    clientStream << pos;
 }
 
 void ChatClient::disconnectFromHost()

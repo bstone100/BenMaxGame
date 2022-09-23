@@ -33,6 +33,8 @@ void Player::advance(int step)
         moveBy(0, -velo);
     if (down && y() < scene()->height() - size)
         moveBy(0, velo);
+
+    emit moved(pos());
 }
 
 int Player::getStartHealth() const

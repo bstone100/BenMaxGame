@@ -4,8 +4,9 @@
 #include "gun.h"
 #include <QGraphicsRectItem>
 
-class Player : public QGraphicsPixmapItem
+class Player : public QObject, public QGraphicsPixmapItem
 {
+    Q_OBJECT
 public:
     Player(QGraphicsItem *parent = nullptr);
 
@@ -37,6 +38,9 @@ public:
 
 protected:
     void advance(int step) override;
+
+signals:
+    void moved(const QPointF &pos);
 
 private:
     int size;

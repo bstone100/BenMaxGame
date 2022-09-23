@@ -79,6 +79,8 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     QObject::connect(chatWindow, &ChatWindow::readyToStart, this, &GraphicsView::gameStart);
     QObject::connect(chatWindow, &ChatWindow::playerJoined, this, &GraphicsView::addPlayer);
     QObject::connect(playButton, &Button::clicked, chatWindow, &ChatWindow::attemptConnection);
+
+    QObject::connect(player, &Player::moved, chatWindow, &ChatWindow::sendMessage);
 }
 
 void GraphicsView::mainFunction()
