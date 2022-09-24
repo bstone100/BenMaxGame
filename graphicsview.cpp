@@ -81,6 +81,7 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
     QObject::connect(playButton, &Button::clicked, chatWindow, &ChatWindow::attemptConnection);
 
     QObject::connect(player, &Player::moved, chatWindow, &ChatWindow::sendMessage);
+    QObject::connect(chatWindow, &ChatWindow::playerMoved, this, &GraphicsView::moveOtherPlayer);
 }
 
 void GraphicsView::mainFunction()
@@ -476,7 +477,8 @@ void GraphicsView::addPlayer()
     Player *newPlayer = new Player();
     HealthBar *newPlayerHealthbar = new HealthBar(newPlayer);
     newPlayerHealthbar->setZValue(1);
-    otherPlayers.append(newPlayer);
+//    otherPlayers.append(newPlayer);
+    otherPlayer = newPlayer;
     scene()->addItem(newPlayer);
     scene()->addItem(newPlayerHealthbar);
 
@@ -485,6 +487,11 @@ void GraphicsView::addPlayer()
     QPointF playerAdjust(newPlayer->getSize() / 2, newPlayer->getSize() / 2);
     newPlayer->setPos(center - playerAdjust);
     newPlayerHealthbar->setPos(newSceneRect.width() / 2 + 100, newSceneRect.height() - 50);
+}
+
+void GraphicsView::moveOtherPlayer(QPointF pos)
+{
+    otherPlayer->setPos(pos);
 }
 
 

@@ -19,6 +19,8 @@ signals:
     void readyToStart();
     void playerJoined(const QString &text);
     void playerLeft(const QString &text);
+    void playerMoved(QPointF pos);
+
 public slots:
     void attemptConnection();
     void connectedToServer();
@@ -33,6 +35,7 @@ public slots:
     void error(QAbstractSocket::SocketError socketError);
 
     void endGame();
+    void posReceived(QPointF pos);
 };
 
 #endif // CHATWINDOW_H

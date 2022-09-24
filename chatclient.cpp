@@ -1,10 +1,12 @@
 #include "chatclient.h"
+#include "QtCore/qpoint.h"
 #include <QTcpSocket>
 #include <QDataStream>
 #include <QJsonParseError>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QPointF>
 
 ChatClient::ChatClient(QObject *parent)
     : QObject(parent)
@@ -50,12 +52,12 @@ void ChatClient::sendMessage(const QPointF &pos)
     // set the version so that programs compiled with different versions of Qt can agree on how to serialise
     clientStream.setVersion(QDataStream::Qt_5_7);
     // Create the JSON we want to send
-//    QJsonObject position;
-//    position[QStringLiteral("type")] = QStringLiteral("position");
-//    position[QStringLiteral("data")] = pos;
-//    // send the JSON using QDataStream
-//    clientStream << QJsonDocument(message).toJson();
-    clientStream << pos;
+    QJsonObject position;
+    position["type"] = "position";
+    position["x"] = pos.x();
+    position["y"] = pos.y();
+    // send the JSON using QDataStream
+    clientStream << QJsonDocument(position).toJson();
 }
 
 void ChatClient::disconnectFromHost()
@@ -111,6 +113,9 @@ void ChatClient::jsonReceived(const QJsonObject &docObj)
             return; // the username was invalid so we ignore
         // we notify of the user disconnection the userLeft signal
         emit userLeft(usernameVal.toString());
+    } else if (typeVal.toString().compare(QLatin1String("position"), Qt::CaseInsensitive) == 0) {
+        QPointF pos(docObj.value("x").toDouble(), docObj.value("y").toDouble());
+        emit posReceived(pos);
     }
 }
 

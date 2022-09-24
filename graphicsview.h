@@ -46,6 +46,8 @@ public:
     void toggleStartServer();
     void addPlayer();
 
+    void moveOtherPlayer(QPointF pos);
+
 private:
     bool upHeld, downHeld, leftHeld, rightHeld;
 
@@ -57,7 +59,8 @@ private:
     HealthBar *playerHealthBar;
     QVector<Bullet *> bullets;
     QVector<Enemy *> enemies;
-    QVector<Player *> otherPlayers;
+//    QVector<Player *> otherPlayers;
+    Player *otherPlayer;
 
     QTimer *mainTimer;
     QTimer *shotsTimer;

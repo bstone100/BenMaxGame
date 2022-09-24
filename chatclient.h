@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTcpSocket>
+#include <QPointF>
 class QHostAddress;
 class QJsonDocument;
 class ChatClient : public QObject
@@ -27,6 +28,7 @@ signals:
     void error(QAbstractSocket::SocketError socketError);
     void userJoined(const QString &username);
     void userLeft(const QString &username);
+    void posReceived(QPointF pos);
 private:
     QTcpSocket *m_clientSocket;
     bool m_loggedIn;

@@ -23,6 +23,7 @@ public slots:
     void disconnectFromClient();
 private slots:
     void receiveJson();
+//    void receivePos();
 private:
     QTcpSocket *m_serverSocket;
     QString m_userName;

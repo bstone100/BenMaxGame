@@ -18,6 +18,7 @@ ChatWindow::ChatWindow(QWidget *parent)
     connect(m_chatClient, &ChatClient::error, this, &ChatWindow::error);
     connect(m_chatClient, &ChatClient::userJoined, this, &ChatWindow::userJoined);
     connect(m_chatClient, &ChatClient::userLeft, this, &ChatWindow::userLeft);
+    connect(m_chatClient, &ChatClient::posReceived, this, &ChatWindow::posReceived);
 }
 
 ChatWindow::~ChatWindow()
@@ -158,4 +159,9 @@ void ChatWindow::error(QAbstractSocket::SocketError socketError)
 void ChatWindow::endGame()
 {
     m_chatClient->disconnectFromHost();
+}
+
+void ChatWindow::posReceived(QPointF pos)
+{
+    emit playerMoved(pos);
 }

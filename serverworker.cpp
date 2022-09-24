@@ -1,4 +1,5 @@
 #include "serverworker.h"
+#include "QtCore/qpoint.h"
 #include <QDataStream>
 #include <QJsonDocument>
 #include <QJsonParseError>
@@ -10,6 +11,7 @@ ServerWorker::ServerWorker(QObject *parent)
 {
     // connect readyRead() to the slot that will take care of reading the data in
     connect(m_serverSocket, &QTcpSocket::readyRead, this, &ServerWorker::receiveJson);
+//    connect(m_serverSocket, &QTcpSocket::readyRead, this, &ServerWorker::receivePos);
     // forward the disconnected and error signals coming from the socket
     connect(m_serverSocket, &QTcpSocket::disconnected, this, &ServerWorker::disconnectedFromClient);
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
