@@ -11,6 +11,7 @@ Button::Button(QString name)
     buttonColor = Qt::white;
     pressed = false;
     fontDivisor = 4;
+    enabled = true;
 }
 
 void Button::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
@@ -52,7 +53,7 @@ void Button::mousePress(QPointF pos)
 void Button::mouseRelease()
 {
     if (pressed) {
-        if (buttonColor == Qt::gray)
+        if (buttonColor == Qt::gray && enabled)
             emit clicked();
         buttonColor = Qt::white;
         pressed = false;
@@ -78,4 +79,14 @@ void Button::setIcon(const QPixmap &newIcon)
 void Button::setFontDivisor(int newFontDivisor)
 {
     fontDivisor = newFontDivisor;
+}
+
+bool Button::getEnabled() const
+{
+    return enabled;
+}
+
+void Button::setEnabled(bool newEnabled)
+{
+    enabled = newEnabled;
 }

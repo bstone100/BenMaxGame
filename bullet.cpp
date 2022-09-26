@@ -1,6 +1,6 @@
 #include "bullet.h"
 #include "QtWidgets/qgraphicsscene.h"
-#include "graphicsview.h"
+#include "game.h"
 
 Bullet::Bullet(QPointF gunTip, qreal angle)
 {

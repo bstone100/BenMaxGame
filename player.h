@@ -36,6 +36,9 @@ public:
 
     void resetProperties();
 
+    const QString &getName() const;
+    void setName(const QString &newName);
+
 protected:
     void advance(int step) override;
 
@@ -48,6 +51,7 @@ private:
     bool up, down, left, right;
     Gun *gun;
     int health, startHealth;
+    QString name;
 };
 
 #endif // PLAYER_H

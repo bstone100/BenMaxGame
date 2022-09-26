@@ -1,6 +1,7 @@
 #ifndef CHATCLIENT_H
 #define CHATCLIENT_H
 
+#include "data.h"
 #include <QObject>
 #include <QTcpSocket>
 #include <QPointF>
@@ -12,6 +13,8 @@ class ChatClient : public QObject
     Q_DISABLE_COPY(ChatClient)
 public:
     explicit ChatClient(QObject *parent = nullptr);
+    QTcpSocket *clientSocket() const;
+
 public slots:
     void connectToServer(const QHostAddress &address, quint16 port);
     void login(const QString &userName);
@@ -19,6 +22,7 @@ public slots:
     void disconnectFromHost();
 private slots:
     void onReadyRead();
+    void dataIncoming();
 signals:
     void connected();
     void loggedIn();
@@ -29,6 +33,7 @@ signals:
     void userJoined(const QString &username);
     void userLeft(const QString &username);
     void posReceived(QPointF pos);
+    void dataReceived(Data data);
 private:
     QTcpSocket *m_clientSocket;
     bool m_loggedIn;

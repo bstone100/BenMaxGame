@@ -1,4 +1,4 @@
-#include "graphicsview.h"
+#include "game.h"
 #include "QtCore/qjsondocument.h"
 #include "QtCore/qjsonobject.h"
 #include "QtCore/qrandom.h"
@@ -10,29 +10,32 @@
 #include "healthbar.h"
 #include <QMessageBox>
 #include <QInputDialog>
+#include "data.h"
 
-GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
+Game::Game(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
 {
     gameStarted = false;
     gamePaused = false;
 
     mainTimer = new QTimer();
-    QObject::connect(mainTimer, &QTimer::timeout, this, &GraphicsView::mainFunction);
+    QObject::connect(mainTimer, &QTimer::timeout, this, &Game::mainFunction);
     mainTimer->setInterval(10);
 
     shotsTimer = new QTimer();
-    QObject::connect(shotsTimer, &QTimer::timeout, this, &GraphicsView::shoot);
-    shotsTimer->setInterval(50);
+    QObject::connect(shotsTimer, &QTimer::timeout, this, &Game::shoot);
+//    shotsTimer->setInterval(50);
+    shotsTimer->setInterval(150);
 
     delayTimer = new QTimer();
     delayTimer->setSingleShot(true);
-    QObject::connect(delayTimer, &QTimer::timeout, this, &GraphicsView::startFullAuto);
+    QObject::connect(delayTimer, &QTimer::timeout, this, &Game::startFullAuto);
     delayTimer->setInterval(250);
 
     makeEnemyTimer = new QTimer();
-    QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &GraphicsView::generateEnemy);
-    makeEnemyTimer->setInterval(200);
+    QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &Game::generateEnemy);
+//    makeEnemyTimer->setInterval(200);
+    makeEnemyTimer->setInterval(1000);
 
     player = new Player();
     playerHealthBar = new HealthBar(player);
@@ -62,38 +65,61 @@ GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
 //    QObject::connect(playButton, &Button::clicked, chatWindow, &ChatWindow::attemptConnection);
 
     pauseButton = new Button("II");
-    QObject::connect(pauseButton, &Button::clicked, this, &GraphicsView::gamePause);
+    QObject::connect(pauseButton, &Button::clicked, this, &Game::gamePause);
     pauseButton->setRect(0, 0, 100, 100);
     pauseButton->setFontDivisor(2);
     pauseButton->setZValue(1);
 //    pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPause));
 
-    server = new ChatServer();
-    serverButton = new Button("Start Server");
-    serverButton->setRect(0, 0, 50, 50);
-    serverButton->setFontDivisor(6);
-    scene->addItem(serverButton);
-    QObject::connect(serverButton, &Button::clicked, this, &GraphicsView::toggleStartServer);
+//    server = new ChatServer();
+//    serverButton = new Button("Start Server");
+//    serverButton->setRect(0, 0, 50, 50);
+//    serverButton->setFontDivisor(6);
+//    scene->addItem(serverButton);
+//    QObject::connect(serverButton, &Button::clicked, this, &Game::toggleStartServer);
 
-    chatWindow = new ChatWindow();
-    QObject::connect(chatWindow, &ChatWindow::readyToStart, this, &GraphicsView::gameStart);
-    QObject::connect(chatWindow, &ChatWindow::playerJoined, this, &GraphicsView::addPlayer);
-    QObject::connect(playButton, &Button::clicked, chatWindow, &ChatWindow::attemptConnection);
+//    chatWindow = new ChatWindow();
+//    QObject::connect(chatWindow, &ChatWindow::readyToStart, this, &Game::gameStart);
+//    QObject::connect(chatWindow, &ChatWindow::playerJoined, this, &Game::addPlayer);
+//    QObject::connect(playButton, &Button::clicked, chatWindow, &ChatWindow::attemptConnection);
 
-    QObject::connect(player, &Player::moved, chatWindow, &ChatWindow::sendMessage);
-    QObject::connect(chatWindow, &ChatWindow::playerMoved, this, &GraphicsView::moveOtherPlayer);
+//    QObject::connect(player, &Player::moved, chatWindow, &ChatWindow::sendMessage);
+//    QObject::connect(chatWindow, &ChatWindow::playerMoved, this, &Game::moveOtherPlayer);
+
+    startLocalGame = new Button("Play\nSolo");
+    scene->addItem(startLocalGame);
+    QObject::connect(startLocalGame, &Button::clicked, this, &Game::gameStart);
+
+    startPublicGame = new Button("Start\nPublic\nGame");
+    scene->addItem(startPublicGame);
+    startPublicGame->setFontDivisor(6);
+    QObject::connect(startPublicGame, &Button::clicked, this, &Game::toggleStartServer);
+
+    joinPublicGame = new Button("Join\nPublic\nGame");
+    scene->addItem(joinPublicGame);
+    joinPublicGame->setFontDivisor(6);
+    QObject::connect(joinPublicGame, &Button::clicked, this, &Game::attemptConnection);
+
+    server = NULL;
+    client = NULL;
+
+    otherPlayer = NULL;
+    otherPlayerHealthBar = NULL;
 }
 
-void GraphicsView::mainFunction()
+void Game::mainFunction()
 {
     scene()->advance();
     moveGun();
+
+    sendData();
+
     cleanUpScene();
     bulletImpact();
     enemyImpact();
 }
 
-void GraphicsView::keyPressEvent(QKeyEvent *event)
+void Game::keyPressEvent(QKeyEvent *event)
 {
     if (!gameStarted) return;
 
@@ -123,7 +149,7 @@ void GraphicsView::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void GraphicsView::keyReleaseEvent(QKeyEvent *event)
+void Game::keyReleaseEvent(QKeyEvent *event)
 {
     if (!gameStarted) return;
 
@@ -147,16 +173,19 @@ void GraphicsView::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
-void GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
+void Game::mouseDoubleClickEvent(QMouseEvent *event)
 {
     mousePressEvent(event);
 }
 
-void GraphicsView::mouseMoveEvent(QMouseEvent *event)
+void Game::mouseMoveEvent(QMouseEvent *event)
 {
     if (!gameStarted) {
         playButton->mouseMove(event->position());
-        serverButton->mouseMove(event->position());
+//        serverButton->mouseMove(event->position());
+        startPublicGame->mouseMove(event->position());
+        startLocalGame->mouseMove(event->position());
+        joinPublicGame->mouseMove(event->position());
         return;
     }
 
@@ -168,13 +197,18 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
     mouseTip.setY(event->position().y());
 
     moveGun();
+
+    sendData();
 }
 
-void GraphicsView::mousePressEvent(QMouseEvent *event)
+void Game::mousePressEvent(QMouseEvent *event)
 {
     if (!gameStarted) {
         playButton->mousePress(event->position());
-        serverButton->mousePress(event->position());
+//        serverButton->mousePress(event->position());
+        startPublicGame->mousePress(event->position());
+        startLocalGame->mousePress(event->position());
+        joinPublicGame->mousePress(event->position());
         return;
     }
 
@@ -188,11 +222,14 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
     delayTimer->start();
 }
 
-void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
+void Game::mouseReleaseEvent(QMouseEvent *event)
 {
     if (!gameStarted) {
         playButton->mouseRelease();
-        serverButton->mouseRelease();
+//        serverButton->mouseRelease();
+        startPublicGame->mouseRelease();
+        startLocalGame->mouseRelease();
+        joinPublicGame->mouseRelease();
         return;
     }
 
@@ -206,7 +243,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
     delayTimer->stop();
 }
 
-void GraphicsView::resizeEvent(QResizeEvent *event)
+void Game::resizeEvent(QResizeEvent *event)
 {
     QRectF newSceneRect(0, 0, width(), height());
     scene()->setSceneRect(newSceneRect);
@@ -234,14 +271,32 @@ void GraphicsView::resizeEvent(QResizeEvent *event)
     QRectF pauseButtonAdjust = pauseButton->boundingRect();
     pauseButton->setPos(width() - pauseButtonAdjust.width(), height() - pauseButtonAdjust.height());
 
-    serverButton->setRect(0, 0, width() / 8, height() / 9);
-    QRectF serverButtonAdjust = serverButton->boundingRect();
-    serverButton->setPos(width() - serverButtonAdjust.width(), 0);
+//    serverButton->setRect(0, 0, width() / 8, height() / 9);
+//    QRectF serverButtonAdjust = serverButton->boundingRect();
+//    serverButton->setPos(width() - serverButtonAdjust.width(), 0);
+
+
+
+    // center
+    startPublicGame->setRect(0, 0, width() / 7, height() / 7);
+    QPointF publicGameAdjust(startPublicGame->rect().center());
+    startPublicGame->setPos(center - publicGameAdjust);
+
+    // left of center
+    startLocalGame->setRect(0, 0, width() / 7, height() / 7);
+    QPointF localGameAdjust(startLocalGame->rect().center());
+    startLocalGame->setPos(center - localGameAdjust - QPointF(startPublicGame->rect().width() + 20, 0));
+
+    // right of center
+    joinPublicGame->setRect(0, 0, width() / 7, height() / 7);
+    QPointF joinPublicAdjust(joinPublicGame->rect().center());
+    joinPublicGame->setPos(center - joinPublicAdjust + QPointF(startPublicGame->rect().width() + 20, 0));
+
 
     QGraphicsView::resizeEvent(event);
 }
 
-void GraphicsView::shoot()
+void Game::shoot()
 {
     qreal angleRadian(qDegreesToRadians(mouseAngle));
     Bullet *bullet = new Bullet(gunTip, angleRadian);
@@ -249,12 +304,12 @@ void GraphicsView::shoot()
     scene()->addItem(bullet);
 }
 
-void GraphicsView::startFullAuto()
+void Game::startFullAuto()
 {
     shotsTimer->start();
 }
 
-void GraphicsView::cleanUpScene()
+void Game::cleanUpScene()
 {
     int size = 150;
     QRectF fullScene(-size, -size, scene()->width() + size * 2, scene()->height() + size * 2);
@@ -281,7 +336,7 @@ void GraphicsView::cleanUpScene()
     }
 }
 
-void GraphicsView::generateEnemy()
+void Game::generateEnemy()
 {
     QPointF startPoint(QRandomGenerator::system()->bounded(scene()->width()), 0);
     Enemy *enemy = new Enemy(startPoint, playerCenter, enemyVelo);
@@ -289,7 +344,7 @@ void GraphicsView::generateEnemy()
     scene()->addItem(enemy);
 }
 
-void GraphicsView::bulletImpact()
+void Game::bulletImpact()
 {
     for (int i = 0; i < enemies.size(); i++) {
         Enemy *enemy = enemies.at(i);
@@ -313,7 +368,7 @@ void GraphicsView::bulletImpact()
     }
 }
 
-void GraphicsView::enemyImpact()
+void Game::enemyImpact()
 {
     QRectF playerRect(player->sceneBoundingRect());
     for (int i = 0; i < enemies.size(); i++) {
@@ -334,7 +389,7 @@ void GraphicsView::enemyImpact()
     }
 }
 
-void GraphicsView::moveGun()
+void Game::moveGun()
 {
     playerCenter.setX(player->x() + (player->getSize() / 2));
     playerCenter.setY(player->y() + (player->getSize() / 2));
@@ -347,7 +402,7 @@ void GraphicsView::moveGun()
     player->getGun()->rotate(mouseAngle);
 }
 
-void GraphicsView::setScene()
+void Game::setScene()
 {
     QRectF newSceneRect(0, 0, width(), height());
     QPointF center(newSceneRect.center());
@@ -357,7 +412,7 @@ void GraphicsView::setScene()
     mouseTip = QPointF(width() / 2, 0);
 }
 
-void GraphicsView::gameStart()
+void Game::gameStart()
 {
     setScore(0);
     level = 0;
@@ -369,9 +424,20 @@ void GraphicsView::gameStart()
     scene()->removeItem(title);
     scene()->removeItem(playButton);
     scene()->removeItem(highScoreText);
-    scene()->removeItem(serverButton);
+//    scene()->removeItem(serverButton);
+    scene()->removeItem(startLocalGame);
+    scene()->removeItem(startPublicGame);
+    scene()->removeItem(joinPublicGame);
+
     scene()->addItem(player);
     scene()->addItem(playerHealthBar);
+
+    if (otherPlayer) {
+        scene()->addItem(otherPlayer);
+        scene()->addItem(otherPlayerHealthBar);
+    }
+
+
     scene()->addItem(pauseButton);
     scoreText->setVisible(true);
 
@@ -381,7 +447,7 @@ void GraphicsView::gameStart()
     makeEnemyTimer->start();
 }
 
-void GraphicsView::gameEnd()
+void Game::gameEnd()
 {
     qDeleteAll(enemies);
     enemies.clear();
@@ -405,10 +471,14 @@ void GraphicsView::gameEnd()
     scene()->removeItem(player);
     scene()->removeItem(playerHealthBar);
     scene()->removeItem(pauseButton);
+
     scene()->addItem(title);
     scene()->addItem(playButton);
     scene()->addItem(highScoreText);
-    scene()->addItem(serverButton);
+//    scene()->addItem(serverButton);
+    scene()->addItem(startLocalGame);
+    scene()->addItem(startPublicGame);
+    scene()->addItem(joinPublicGame);
 
     gameStarted = false;
 
@@ -426,10 +496,10 @@ void GraphicsView::gameEnd()
         highScoreText->setPos(width() - highScoreAdjust.width(), height() - highScoreAdjust.height());
     }
 
-    chatWindow->endGame();
+//    chatWindow->endGame();
 }
 
-void GraphicsView::gamePause()
+void Game::gamePause()
 {
     gamePaused = !gamePaused;
     if (gamePaused) {
@@ -447,7 +517,7 @@ void GraphicsView::gamePause()
     }
 }
 
-void GraphicsView::setScore(int newScore)
+void Game::setScore(int newScore)
 {
     score = newScore;
     scoreText->setPlainText(QString::number(score));
@@ -457,39 +527,175 @@ void GraphicsView::setScore(int newScore)
     }
 }
 
-// maybe have server window be a QDockWindow
-void GraphicsView::toggleStartServer()
+void Game::toggleStartServer()
 {
-    if (server->isListening()) {
-        server->stopServer();
-        serverButton->setButtonName("Start Server");
-    } else {
+    if (server == NULL) {
+        server = new ChatServer();
         if (!server->listen(QHostAddress::Any, 1967)) {
             QMessageBox::critical(this, tr("Error"), tr("Unable to start the server"));
             return;
         }
-        serverButton->setButtonName("Stop Server");
+        startPublicGame->setButtonName("Stop\nPublic\nGame");
+        startLocalGame->setEnabled(false);
+        joinPublicGame->setEnabled(false);
+
+        client = new ChatClient();
+        QObject::connect(client, &ChatClient::error, this, &Game::error);
+        QObject::connect(client, &ChatClient::dataReceived, this, &Game::receiveData);
+
+        client->connectToServer(QHostAddress("127.0.0.1"), 1967);
+
+        // now must wait for a connection
+        // upon connection, make second player and start game
+        // secondary game will begin transmitting data to the server
+        QObject::connect(server, &ChatServer::playerJoined, this, &Game::addPlayer);
+    } else {
+        server->stopServer();
+        delete server;
+        server = NULL;
+        startPublicGame->setButtonName("Start\nPublic\nGame");
+        startLocalGame->setEnabled(true);
+        joinPublicGame->setEnabled(true);
     }
 }
 
-void GraphicsView::addPlayer()
+void Game::attemptConnection()
+{
+    // We ask the user for the address of the server, we use 127.0.0.1 (aka localhost) as default
+    const QString hostAddress = QInputDialog::getText(
+        this
+        , tr("Chose Server")
+        , tr("Server Address")
+        , QLineEdit::Normal
+        , QStringLiteral("127.0.0.1")
+    );
+    if (hostAddress.isEmpty())
+        return; // the user pressed cancel or typed nothing
+
+
+    // tell the client to connect to the host using the port 1967
+    client = new ChatClient();
+    QObject::connect(client, &ChatClient::error, this, &Game::error);
+    QObject::connect(client, &ChatClient::connected, this, &Game::addPlayer);
+    QObject::connect(client, &ChatClient::dataReceived, this, &Game::receiveData);
+
+    client->connectToServer(QHostAddress(hostAddress), 1967);
+    // host decides when game starts
+    // name doesn't matter for now
+}
+
+void Game::connectedToServer()
+{
+    // prepare environment for being a secondary instance of the game
+}
+
+void Game::error(QAbstractSocket::SocketError socketError)
+{
+    // show a message to the user that informs of what kind of error occurred
+    switch (socketError) {
+    case QAbstractSocket::RemoteHostClosedError:
+    case QAbstractSocket::ProxyConnectionClosedError:
+        return; // handled by disconnectedFromServer
+    case QAbstractSocket::ConnectionRefusedError:
+        QMessageBox::critical(this, tr("Error"), tr("The host refused the connection"));
+        break;
+    case QAbstractSocket::ProxyConnectionRefusedError:
+        QMessageBox::critical(this, tr("Error"), tr("The proxy refused the connection"));
+        break;
+    case QAbstractSocket::ProxyNotFoundError:
+        QMessageBox::critical(this, tr("Error"), tr("Could not find the proxy"));
+        break;
+    case QAbstractSocket::HostNotFoundError:
+        QMessageBox::critical(this, tr("Error"), tr("Could not find the server"));
+        break;
+    case QAbstractSocket::SocketAccessError:
+        QMessageBox::critical(this, tr("Error"), tr("You don't have permissions to execute this operation"));
+        break;
+    case QAbstractSocket::SocketResourceError:
+        QMessageBox::critical(this, tr("Error"), tr("Too many connections opened"));
+        break;
+    case QAbstractSocket::SocketTimeoutError:
+        QMessageBox::warning(this, tr("Error"), tr("Operation timed out"));
+        return;
+    case QAbstractSocket::ProxyConnectionTimeoutError:
+        QMessageBox::critical(this, tr("Error"), tr("Proxy timed out"));
+        break;
+    case QAbstractSocket::NetworkError:
+        QMessageBox::critical(this, tr("Error"), tr("Unable to reach the network"));
+        break;
+    case QAbstractSocket::UnknownSocketError:
+        QMessageBox::critical(this, tr("Error"), tr("An unknown error occured"));
+        break;
+    case QAbstractSocket::UnsupportedSocketOperationError:
+        QMessageBox::critical(this, tr("Error"), tr("Operation not supported"));
+        break;
+    case QAbstractSocket::ProxyAuthenticationRequiredError:
+        QMessageBox::critical(this, tr("Error"), tr("Your proxy requires authentication"));
+        break;
+    case QAbstractSocket::ProxyProtocolError:
+        QMessageBox::critical(this, tr("Error"), tr("Proxy comunication failed"));
+        break;
+    case QAbstractSocket::TemporaryError:
+    case QAbstractSocket::OperationError:
+        QMessageBox::warning(this, tr("Error"), tr("Operation failed, please try again"));
+        return;
+    default:
+        Q_UNREACHABLE();
+    }
+}
+
+void Game::sendData()
+{
+    if (!client) return;
+    QDataStream clientStream(client->clientSocket());
+    clientStream.setVersion(QDataStream::Qt_5_7);
+    // will send ID first
+    Data gameData(player->pos(), mouseAngle, player->getHealth(), score);
+    gameData.operator<<(clientStream);
+}
+
+void Game::receiveData(Data data)
+{
+    otherPlayer->setPos(data.getPlayerPos());
+    otherPlayer->getGun()->rotate(data.getMouseAngle());
+    otherPlayer->setHealth(data.getHealth());
+}
+
+
+// maybe have server window be a QDockWindow
+//void Game::toggleStartServer()
+//{
+//    if (server->isListening()) {
+//        server->stopServer();
+//        serverButton->setButtonName("Start Server");
+//    } else {
+//        if (!server->listen(QHostAddress::Any, 1967)) {
+//            QMessageBox::critical(this, tr("Error"), tr("Unable to start the server"));
+//            return;
+//        }
+//        serverButton->setButtonName("Stop Server");
+//    }
+//}
+
+void Game::addPlayer()
 {
     Player *newPlayer = new Player();
-    HealthBar *newPlayerHealthbar = new HealthBar(newPlayer);
-    newPlayerHealthbar->setZValue(1);
+    HealthBar *newPlayerHealthBar = new HealthBar(newPlayer);
+    newPlayerHealthBar->setZValue(1);
 //    otherPlayers.append(newPlayer);
     otherPlayer = newPlayer;
-    scene()->addItem(newPlayer);
-    scene()->addItem(newPlayerHealthbar);
+    otherPlayerHealthBar = newPlayerHealthBar;
 
     QRectF newSceneRect(0, 0, width(), height());
     QPointF center(newSceneRect.center());
     QPointF playerAdjust(newPlayer->getSize() / 2, newPlayer->getSize() / 2);
     newPlayer->setPos(center - playerAdjust);
-    newPlayerHealthbar->setPos(newSceneRect.width() / 2 + 100, newSceneRect.height() - 50);
+    newPlayerHealthBar->setPos(newSceneRect.width() / 2 - 100, newSceneRect.height() - 100);
+
+    gameStart();
 }
 
-void GraphicsView::moveOtherPlayer(QPointF pos)
+void Game::moveOtherPlayer(QPointF pos)
 {
     otherPlayer->setPos(pos);
 }

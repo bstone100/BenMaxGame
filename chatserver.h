@@ -1,6 +1,7 @@
 #ifndef CHATSERVER_H
 #define CHATSERVER_H
 
+#include "data.h"
 #include <QVector>
 #include <QTcpServer>
 class QThread;
@@ -15,6 +16,7 @@ protected:
     void incomingConnection(qintptr socketDescriptor) override;
 signals:
     void logMessage(const QString &msg);
+    void playerJoined();
 public slots:
     void stopServer();
 private slots:
@@ -22,6 +24,7 @@ private slots:
     void jsonReceived(ServerWorker *sender, const QJsonObject &doc);
     void userDisconnected(ServerWorker *sender);
     void userError(ServerWorker *sender);
+    void dataReceived(ServerWorker *sender, Data &data);
 private:
     void jsonFromLoggedOut(ServerWorker *sender, const QJsonObject &doc);
     void jsonFromLoggedIn(ServerWorker *sender, const QJsonObject &doc);

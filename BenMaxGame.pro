@@ -14,8 +14,9 @@ SOURCES += \
     chatclient.cpp \
     chatserver.cpp \
     chatwindow.cpp \
+    data.cpp \
     enemy.cpp \
-    graphicsview.cpp \
+    game.cpp \
     gun.cpp \
     healthbar.cpp \
     main.cpp \
@@ -29,8 +30,9 @@ HEADERS += \
     chatclient.h \
     chatserver.h \
     chatwindow.h \
+    data.h \
     enemy.h \
-    graphicsview.h \
+    game.h \
     gun.h \
     healthbar.h \
     mainwindow.h \

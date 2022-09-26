@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QPointF>
+#include "data.h"
 
 ChatClient::ChatClient(QObject *parent)
     : QObject(parent)
@@ -17,7 +18,8 @@ ChatClient::ChatClient(QObject *parent)
     connect(m_clientSocket, &QTcpSocket::connected, this, &ChatClient::connected);
     connect(m_clientSocket, &QTcpSocket::disconnected, this, &ChatClient::disconnected);
     // connect readyRead() to the slot that will take care of reading the data in
-    connect(m_clientSocket, &QTcpSocket::readyRead, this, &ChatClient::onReadyRead);
+//    connect(m_clientSocket, &QTcpSocket::readyRead, this, &ChatClient::onReadyRead);
+    connect(m_clientSocket, &QTcpSocket::readyRead, this, &ChatClient::dataIncoming);
     // Forward the error signal, QOverload is necessary as error() is overloaded, see the Qt docs
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     connect(m_clientSocket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &ChatClient::error);
@@ -156,4 +158,18 @@ void ChatClient::onReadyRead()
             break;
         }
     }
+}
+
+void ChatClient::dataIncoming()
+{
+    QDataStream socketStream(m_clientSocket);
+    socketStream.setVersion(QDataStream::Qt_5_7);
+    Data gameData;
+    gameData.operator>>(socketStream);
+    emit dataReceived(gameData);
+}
+
+QTcpSocket *ChatClient::clientSocket() const
+{
+    return m_clientSocket;
 }

@@ -23,6 +23,9 @@ public:
 
     void setFontDivisor(int newFontDivisor);
 
+    bool getEnabled() const;
+    void setEnabled(bool newEnabled);
+
 signals:
     void clicked();
 
@@ -30,6 +33,7 @@ private:
     Qt::GlobalColor buttonColor;
     QString buttonName;
     bool pressed;
+    bool enabled;
     QPixmap icon;
     int fontDivisor;
 };

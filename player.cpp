@@ -37,6 +37,16 @@ void Player::advance(int step)
     emit moved(pos());
 }
 
+const QString &Player::getName() const
+{
+    return name;
+}
+
+void Player::setName(const QString &newName)
+{
+    name = newName;
+}
+
 int Player::getStartHealth() const
 {
     return startHealth;

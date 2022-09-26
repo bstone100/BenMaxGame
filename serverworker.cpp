@@ -4,14 +4,16 @@
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <QJsonObject>
+#include "data.h"
 
 ServerWorker::ServerWorker(QObject *parent)
     : QObject(parent)
     , m_serverSocket(new QTcpSocket(this))
 {
     // connect readyRead() to the slot that will take care of reading the data in
-    connect(m_serverSocket, &QTcpSocket::readyRead, this, &ServerWorker::receiveJson);
+//    connect(m_serverSocket, &QTcpSocket::readyRead, this, &ServerWorker::receiveJson);
 //    connect(m_serverSocket, &QTcpSocket::readyRead, this, &ServerWorker::receivePos);
+    connect(m_serverSocket, &QTcpSocket::readyRead, this, &ServerWorker::receiveData);
     // forward the disconnected and error signals coming from the socket
     connect(m_serverSocket, &QTcpSocket::disconnected, this, &ServerWorker::disconnectedFromClient);
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -38,6 +40,13 @@ void ServerWorker::sendJson(const QJsonObject &json)
     QDataStream socketStream(m_serverSocket);
     socketStream.setVersion(QDataStream::Qt_5_7);
     socketStream << jsonData;
+}
+
+void ServerWorker::sendData(Data &data)
+{
+    QDataStream socketStream(m_serverSocket);
+    socketStream.setVersion(QDataStream::Qt_5_7);
+    data.operator<<(socketStream);
 }
 
 void ServerWorker::disconnectFromClient()
@@ -91,6 +100,19 @@ void ServerWorker::receiveJson()
             break;
         }
     }
+}
+
+void ServerWorker::receiveData()
+{
+
+    QDataStream socketStream(m_serverSocket);
+    socketStream.setVersion(QDataStream::Qt_5_7);
+    Data gameData;
+    gameData.operator>>(socketStream);
+
+    // emit signal to server containing the data
+    // server will broadcast data to clients
+    emit dataReceived(gameData);
 }
 
 

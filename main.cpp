@@ -2,7 +2,7 @@
 #include "QtGui/qpainter.h"
 #include "QtWidgets/qgraphicsview.h"
 #include "QtWidgets/qmenubar.h"
-#include "graphicsview.h"
+#include "game.h"
 #include "gun.h"
 #include "healthbar.h"
 #include "mainwindow.h"
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     QGraphicsScene scene;
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
 
-    GraphicsView view(&scene);
+    Game view(&scene);
     view.setMouseTracking(true);
     view.setRenderHint(QPainter::Antialiasing);
     view.setCacheMode(QGraphicsView::CacheBackground);
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     menuBar->addMenu(fileMenu);
 
     QAction *startAction = new QAction("Start Game", fileMenu);
-    QObject::connect(startAction, &QAction::triggered, &view, &GraphicsView::gameStart);
+    QObject::connect(startAction, &QAction::triggered, &view, &Game::gameStart);
     fileMenu->addAction(startAction);
 
     QAction *minimizeAction = new QAction("Minimize Window", fileMenu);

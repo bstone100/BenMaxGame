@@ -21,8 +21,10 @@ void ChatServer::incomingConnection(qintptr socketDescriptor)
     connect(worker, &ServerWorker::error, this, std::bind(&ChatServer::userError, this, worker));
     connect(worker, &ServerWorker::jsonReceived, this, std::bind(&ChatServer::jsonReceived, this, worker, std::placeholders::_1));
     connect(worker, &ServerWorker::logMessage, this, &ChatServer::logMessage);
+    connect(worker, &ServerWorker::dataReceived, this, std::bind(&ChatServer::dataReceived, this, worker, std::placeholders::_1));
     m_clients.append(worker);
-    emit logMessage(QStringLiteral("New client Connected"));
+//    emit logMessage(QStringLiteral("New client Connected"));
+    emit playerJoined();
 }
 void ChatServer::sendJson(ServerWorker *destination, const QJsonObject &message)
 {
@@ -66,6 +68,17 @@ void ChatServer::userError(ServerWorker *sender)
 {
     Q_UNUSED(sender)
     emit logMessage(QLatin1String("Error from ") + sender->userName());
+}
+
+void ChatServer::dataReceived(ServerWorker *sender, Data &data)
+{
+    Q_ASSERT(sender);
+    for (ServerWorker *worker : m_clients) {
+        Q_ASSERT(worker);
+        if (worker == sender)
+            continue;
+        worker->sendData(data);
+    }
 }
 
 void ChatServer::stopServer()

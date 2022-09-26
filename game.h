@@ -1,5 +1,5 @@
-#ifndef GRAPHICSVIEW_H
-#define GRAPHICSVIEW_H
+#ifndef GAME_H
+#define GAME_H
 
 #include "button.h"
 #include "chatclient.h"
@@ -10,11 +10,11 @@
 #include "bullet.h"
 #include <QGraphicsView>
 
-class GraphicsView : public QGraphicsView
+class Game : public QGraphicsView
 {
     Q_OBJECT
 public:
-    GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr);
+    Game(QGraphicsScene *scene, QWidget *parent = nullptr);
 
     void mainFunction();
 
@@ -43,10 +43,18 @@ public:
 
     void setScore(int newScore);
 
-    void toggleStartServer();
+//    void toggleStartServer();
     void addPlayer();
 
     void moveOtherPlayer(QPointF pos);
+
+    void toggleStartServer();
+    void attemptConnection();
+    void connectedToServer();
+    void error(QAbstractSocket::SocketError socketError);
+    void sendData();
+    void receiveData(Data data);
+
 
 private:
     bool upHeld, downHeld, leftHeld, rightHeld;
@@ -61,6 +69,7 @@ private:
     QVector<Enemy *> enemies;
 //    QVector<Player *> otherPlayers;
     Player *otherPlayer;
+    HealthBar *otherPlayerHealthBar;
 
     QTimer *mainTimer;
     QTimer *shotsTimer;
@@ -89,11 +98,27 @@ private:
 
     Button *playButton;
     Button *pauseButton;
-    Button *serverButton;
 
+//    Button *serverButton;
+
+//    ChatServer *server;
+//    ChatWindow *chatWindow;
+
+    // local solo game
+    // connect to gameStart()
+    Button *startLocalGame;
+    // initializes server and waits for players to join
+    // connect to makeLobby()
+    Button *startPublicGame;
+    // attempts to join active server
+    // connect to joinLobby()
+    Button *joinPublicGame;
+
+    // will be used if this computer is host
     ChatServer *server;
-    ChatWindow *chatWindow;
+    // will be used if this computer is not host
+    ChatClient *client;
 
 };
 
-#endif // GRAPHICSVIEW_H
+#endif // GAME_H
