@@ -12,11 +12,15 @@ class ChatServer : public QTcpServer
     Q_DISABLE_COPY(ChatServer)
 public:
     explicit ChatServer(QObject *parent = nullptr);
+
+    int clientNumber(){return m_clients.size();}
+
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
 signals:
     void logMessage(const QString &msg);
     void playerJoined();
+    void serverFull();
 public slots:
     void stopServer();
 private slots:

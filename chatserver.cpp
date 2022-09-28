@@ -24,7 +24,8 @@ void ChatServer::incomingConnection(qintptr socketDescriptor)
     connect(worker, &ServerWorker::dataReceived, this, std::bind(&ChatServer::dataReceived, this, worker, std::placeholders::_1));
     m_clients.append(worker);
 //    emit logMessage(QStringLiteral("New client Connected"));
-    emit playerJoined();
+//    emit playerJoined();
+    if (m_clients.size() > 1) emit serverFull();
 }
 void ChatServer::sendJson(ServerWorker *destination, const QJsonObject &message)
 {

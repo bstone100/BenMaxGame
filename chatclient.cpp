@@ -165,8 +165,15 @@ void ChatClient::dataIncoming()
     QDataStream socketStream(m_clientSocket);
     socketStream.setVersion(QDataStream::Qt_5_7);
     Data gameData;
-    gameData.operator>>(socketStream);
-    emit dataReceived(gameData);
+    for (;;) {
+        socketStream.startTransaction();
+        socketStream >> gameData;
+        if (socketStream.commitTransaction()) {
+            emit dataReceived(gameData);
+        } else {
+            break;
+        }
+    }
 }
 
 QTcpSocket *ChatClient::clientSocket() const

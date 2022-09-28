@@ -43,16 +43,19 @@ public:
 
     void setScore(int newScore);
 
-//    void toggleStartServer();
     void addPlayer();
 
     void moveOtherPlayer(QPointF pos);
 
     void toggleStartServer();
     void attemptConnection();
-    void connectedToServer();
     void error(QAbstractSocket::SocketError socketError);
-    void sendData();
+
+    void sendPlayerData();
+    void sendNewBulletData(QPointF gunTip, qreal angle);
+    void sendNewEnemyData(QPointF startPoint, QPointF playerCenter, int velo, int size);
+    void sendGameOver();
+
     void receiveData(Data data);
 
 
@@ -61,15 +64,19 @@ private:
 
     QPointF mouseTip, playerCenter, gunTip;
 
-    qreal mouseAngle;
-
     Player *player;
-    HealthBar *playerHealthBar;
+//    HealthBar *playerHealthBar;
+
+
     QVector<Bullet *> bullets;
+    Bullet *newestBullet;
+
     QVector<Enemy *> enemies;
+    Enemy *newestEnemy;
+
 //    QVector<Player *> otherPlayers;
     Player *otherPlayer;
-    HealthBar *otherPlayerHealthBar;
+//    HealthBar *otherPlayerHealthBar;
 
     QTimer *mainTimer;
     QTimer *shotsTimer;
@@ -88,7 +95,6 @@ private:
     QGraphicsTextItem *scoreText;
     QGraphicsTextItem *highScoreText;
 
-    int score;
     int enemyVelo;
     int level;
     int highScore;

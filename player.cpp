@@ -2,6 +2,7 @@
 #include "QKeyEvent"
 #include "QDebug"
 #include "QtWidgets/qgraphicsscene.h"
+#include <QUuid>
 
 Player::Player(QGraphicsItem *parent)
     : QGraphicsPixmapItem(parent)
@@ -19,6 +20,13 @@ Player::Player(QGraphicsItem *parent)
     gun = new Gun(this);
 
     health = startHealth = 500;
+    healthBar = new HealthBar(this);
+
+    name = "Ben";
+    id = QUuid::createUuid();
+
+    score = 0;
+    mouseAngle = 0;
 }
 
 void Player::advance(int step)
@@ -33,8 +41,41 @@ void Player::advance(int step)
         moveBy(0, -velo);
     if (down && y() < scene()->height() - size)
         moveBy(0, velo);
+}
 
-    emit moved(pos());
+HealthBar *Player::getHealthBar() const
+{
+    return healthBar;
+}
+
+QPointF Player::getTempPos() const
+{
+    return tempPos;
+}
+
+qreal Player::getMouseAngle() const
+{
+    return mouseAngle;
+}
+
+void Player::setMouseAngle(qreal newMouseAngle)
+{
+    mouseAngle = newMouseAngle;
+}
+
+int Player::getScore() const
+{
+    return score;
+}
+
+void Player::setScore(int newScore)
+{
+    score = newScore;
+}
+
+const QUuid &Player::getId() const
+{
+    return id;
 }
 
 const QString &Player::getName() const

@@ -12,6 +12,8 @@
 #include <QInputDialog>
 #include "data.h"
 
+int enemySizes[] = {30, 50, 70, 90, 110, 130, 150};
+
 Game::Game(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
 {
@@ -25,7 +27,7 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     shotsTimer = new QTimer();
     QObject::connect(shotsTimer, &QTimer::timeout, this, &Game::shoot);
 //    shotsTimer->setInterval(50);
-    shotsTimer->setInterval(150);
+    shotsTimer->setInterval(250);
 
     delayTimer = new QTimer();
     delayTimer->setSingleShot(true);
@@ -35,11 +37,17 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     makeEnemyTimer = new QTimer();
     QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &Game::generateEnemy);
 //    makeEnemyTimer->setInterval(200);
-    makeEnemyTimer->setInterval(1000);
+    makeEnemyTimer->setInterval(1500);
 
     player = new Player();
-    playerHealthBar = new HealthBar(player);
-    playerHealthBar->setZValue(1);
+//    playerHealthBar = new HealthBar(player);
+//    playerHealthBar->setZValue(1);
+
+    otherPlayer = new Player();
+//    otherPlayerHealthBar = new HealthBar(otherPlayer);
+//    otherPlayerHealthBar->setZValue(1);
+    otherPlayer->setVisible(false);
+//    otherPlayerHealthBar->setVisible(false);
 
     background = QPixmap(":/images/space3.jpg");
 
@@ -47,7 +55,7 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     title->setDefaultTextColor(Qt::white);
     scene->addItem(title);
 
-    scoreText = new QGraphicsTextItem(QString::number(score));
+    scoreText = new QGraphicsTextItem(QString::number(player->getScore()));
     scoreText->setDefaultTextColor(Qt::white);
     scene->addItem(scoreText);
     scoreText->setVisible(false);
@@ -103,8 +111,11 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     server = NULL;
     client = NULL;
 
-    otherPlayer = NULL;
-    otherPlayerHealthBar = NULL;
+//    otherPlayer = NULL;
+//    otherPlayerHealthBar = NULL;
+
+    newestEnemy = NULL;
+    newestBullet = NULL;
 }
 
 void Game::mainFunction()
@@ -112,7 +123,8 @@ void Game::mainFunction()
     scene()->advance();
     moveGun();
 
-    sendData();
+//    sendData();
+    sendPlayerData();
 
     cleanUpScene();
     bulletImpact();
@@ -198,7 +210,8 @@ void Game::mouseMoveEvent(QMouseEvent *event)
 
     moveGun();
 
-    sendData();
+//    sendData();
+    sendPlayerData();
 }
 
 void Game::mousePressEvent(QMouseEvent *event)
@@ -298,9 +311,13 @@ void Game::resizeEvent(QResizeEvent *event)
 
 void Game::shoot()
 {
-    qreal angleRadian(qDegreesToRadians(mouseAngle));
+    qreal angleRadian(qDegreesToRadians(player->getMouseAngle()));
     Bullet *bullet = new Bullet(gunTip, angleRadian);
+
+    sendNewBulletData(gunTip, angleRadian);
+
     bullets.append(bullet);
+    newestBullet = bullet;
     scene()->addItem(bullet);
 }
 
@@ -339,8 +356,13 @@ void Game::cleanUpScene()
 void Game::generateEnemy()
 {
     QPointF startPoint(QRandomGenerator::system()->bounded(scene()->width()), 0);
-    Enemy *enemy = new Enemy(startPoint, playerCenter, enemyVelo);
+    int size = enemySizes[QRandomGenerator::system()->bounded(7)];
+    Enemy *enemy = new Enemy(startPoint, playerCenter, enemyVelo, size);
+
+    sendNewEnemyData(startPoint, playerCenter, enemyVelo, size);
+
     enemies.append(enemy);
+    newestEnemy = enemy;
     scene()->addItem(enemy);
 }
 
@@ -360,7 +382,7 @@ void Game::bulletImpact()
             }
         }
         if (enemy->getHealth() <= 0) {
-            setScore(score + enemy->getStartHealth());
+            setScore(player->getScore() + enemy->getStartHealth());
             enemies.remove(i);
             i--;
             enemy->startExplosion();
@@ -371,20 +393,29 @@ void Game::bulletImpact()
 void Game::enemyImpact()
 {
     QRectF playerRect(player->sceneBoundingRect());
+    QRectF otherPlayerRect(otherPlayer->sceneBoundingRect());
     for (int i = 0; i < enemies.size(); i++) {
         Enemy *enemy = enemies.at(i);
         QRectF enemyRect(enemy->sceneBoundingRect());
         if (enemyRect.intersects(playerRect)) {
             player->setHealth(player->getHealth() - enemy->getDamage());
-            setScore(score + enemy->getStartHealth());
+            setScore(player->getScore() + enemy->getStartHealth());
             if (player->getHealth() <= 0) {
                 gameEnd();
+                sendGameOver();
                 return;
             }
-            playerHealthBar->update();
+//            playerHealthBar->update();
             enemies.remove(i);
             i--;
             enemy->startExplosion();
+        }
+        if (otherPlayer->isVisible()) {
+            if (enemyRect.intersects(otherPlayerRect)) {
+                enemies.remove(i);
+                i--;
+                enemy->startExplosion();
+            }
         }
     }
 }
@@ -396,10 +427,10 @@ void Game::moveGun()
 
     QLineF mouseLine(playerCenter, mouseTip);
 
-    mouseAngle = mouseLine.angle();
+    player->setMouseAngle(mouseLine.angle());
     gunTip = mouseLine.pointAt(60 / mouseLine.length());
 
-    player->getGun()->rotate(mouseAngle);
+    player->getGun()->rotate(player->getMouseAngle());
 }
 
 void Game::setScene()
@@ -408,8 +439,11 @@ void Game::setScene()
     QPointF center(newSceneRect.center());
     QPointF playerAdjust(player->getSize() / 2, player->getSize() / 2);
     player->setPos(center - playerAdjust);
-    playerHealthBar->setPos(newSceneRect.width() / 2 - 100, newSceneRect.height() - 50);
+//    playerHealthBar->setPos(newSceneRect.width() / 2 - 100, newSceneRect.height() - 50);
     mouseTip = QPointF(width() / 2, 0);
+
+    otherPlayer->setPos(center - playerAdjust);
+//    otherPlayerHealthBar->setPos(newSceneRect.width() / 2 - 100, newSceneRect.height() - 50);
 }
 
 void Game::gameStart()
@@ -419,6 +453,7 @@ void Game::gameStart()
     enemyVelo = 2;
     upHeld = downHeld = leftHeld = rightHeld = false;
     player->resetProperties();
+    otherPlayer->resetProperties();
     setScene();
 
     scene()->removeItem(title);
@@ -430,12 +465,10 @@ void Game::gameStart()
     scene()->removeItem(joinPublicGame);
 
     scene()->addItem(player);
-    scene()->addItem(playerHealthBar);
+//    scene()->addItem(playerHealthBar);
 
-    if (otherPlayer) {
-        scene()->addItem(otherPlayer);
-        scene()->addItem(otherPlayerHealthBar);
-    }
+    scene()->addItem(otherPlayer);
+//    scene()->addItem(otherPlayerHealthBar);
 
 
     scene()->addItem(pauseButton);
@@ -469,7 +502,13 @@ void Game::gameEnd()
     }
 
     scene()->removeItem(player);
-    scene()->removeItem(playerHealthBar);
+//    scene()->removeItem(playerHealthBar);
+
+    scene()->removeItem(otherPlayer);
+//    scene()->removeItem(otherPlayerHealthBar);
+    otherPlayer->setVisible(false);
+//    otherPlayerHealthBar->setVisible(false);
+
     scene()->removeItem(pauseButton);
 
     scene()->addItem(title);
@@ -481,14 +520,16 @@ void Game::gameEnd()
     scene()->addItem(joinPublicGame);
 
     gameStarted = false;
+    gamePaused = false;
+    pauseButton->setEnabled(true);
 
     mainTimer->stop();
     shotsTimer->stop();
     delayTimer->stop();
     makeEnemyTimer->stop();
 
-    if (score > highScore) {
-        highScore = score;
+    if (player->getScore() > highScore) {
+        highScore = player->getScore();
         QSettings settings("BenMax Productions", "BenMaxGame");
         settings.setValue("highScore", highScore);
         highScoreText->setPlainText(QString::number(highScore));
@@ -519,9 +560,9 @@ void Game::gamePause()
 
 void Game::setScore(int newScore)
 {
-    score = newScore;
-    scoreText->setPlainText(QString::number(score));
-    if (score >= level + 500) {
+    player->setScore(newScore);
+    scoreText->setPlainText(QString::number(player->getScore()));
+    if (player->getScore() >= level + 500) {
         level += 500;
         enemyVelo++;
     }
@@ -542,13 +583,9 @@ void Game::toggleStartServer()
         client = new ChatClient();
         QObject::connect(client, &ChatClient::error, this, &Game::error);
         QObject::connect(client, &ChatClient::dataReceived, this, &Game::receiveData);
-
         client->connectToServer(QHostAddress("127.0.0.1"), 1967);
 
-        // now must wait for a connection
-        // upon connection, make second player and start game
-        // secondary game will begin transmitting data to the server
-        QObject::connect(server, &ChatServer::playerJoined, this, &Game::addPlayer);
+        QObject::connect(server, &ChatServer::serverFull, this, &Game::addPlayer);
     } else {
         server->stopServer();
         delete server;
@@ -582,11 +619,6 @@ void Game::attemptConnection()
     client->connectToServer(QHostAddress(hostAddress), 1967);
     // host decides when game starts
     // name doesn't matter for now
-}
-
-void Game::connectedToServer()
-{
-    // prepare environment for being a secondary instance of the game
 }
 
 void Game::error(QAbstractSocket::SocketError socketError)
@@ -644,54 +676,86 @@ void Game::error(QAbstractSocket::SocketError socketError)
     }
 }
 
-void Game::sendData()
+void Game::sendPlayerData()
 {
     if (!client) return;
     QDataStream clientStream(client->clientSocket());
     clientStream.setVersion(QDataStream::Qt_5_7);
-    // will send ID first
-    Data gameData(player->pos(), mouseAngle, player->getHealth(), score);
-    gameData.operator<<(clientStream);
+
+    Data data("playerMove");
+    data.setPlayerPos(player->pos());
+    data.setPlayerMouseAngle(player->getMouseAngle());
+    data.setPlayerHealth(player->getHealth());
+    data.setPlayerScore(player->getScore());
+    clientStream << data;
+}
+
+void Game::sendNewBulletData(QPointF gunTip, qreal angle)
+{
+    if (!client) return;
+    QDataStream clientStream(client->clientSocket());
+    clientStream.setVersion(QDataStream::Qt_5_7);
+
+    Data data("newBullet");
+    data.setBulletGunTip(gunTip);
+    data.setBulletAngle(angle);
+    clientStream << data;
+}
+
+void Game::sendNewEnemyData(QPointF startPoint, QPointF playerCenter, int velo, int size)
+{
+    if (!client) return;
+    QDataStream clientStream(client->clientSocket());
+    clientStream.setVersion(QDataStream::Qt_5_7);
+
+    Data data("newEnemy");
+    data.setEnemyStartPoint(startPoint);
+    data.setEnemyPlayerCenter(playerCenter);
+    data.setEnemyVelo(velo);
+    data.setEnemySize(size);
+    clientStream << data;
+}
+
+void Game::sendGameOver()
+{
+    if (!client) return;
+    QDataStream clientStream(client->clientSocket());
+    clientStream.setVersion(QDataStream::Qt_5_7);
+
+    Data data("gameOver");
+    clientStream << data;
 }
 
 void Game::receiveData(Data data)
 {
-    otherPlayer->setPos(data.getPlayerPos());
-    otherPlayer->getGun()->rotate(data.getMouseAngle());
-    otherPlayer->setHealth(data.getHealth());
+    QString t(data.getType());
+    if (t == "playerMove" ) {
+        otherPlayer->setPos(data.getPlayerPos());
+        otherPlayer->getGun()->rotate(data.getPlayerMouseAngle());
+        otherPlayer->setHealth(data.getPlayerHealth());
+        otherPlayer->setScore(data.getPlayerScore());
+    } else if (t == "newBullet") {
+        Bullet *bullet = new Bullet(data.getBulletGunTip(), data.getBulletAngle());
+        bullets.append(bullet);
+        scene()->addItem(bullet);
+    } else if (t == "newEnemy") {
+        Enemy *enemy = new Enemy(data.getEnemyStartPoint(), data.getEnemyPlayerCenter(),
+                                 data.getEnemyVelo(), data.getEnemySize());
+        enemies.append(enemy);
+        scene()->addItem(enemy);
+    } else if (t == "gameOver") {
+        if (gameStarted) {
+            gameEnd();
+        }
+    }
 }
-
-
-// maybe have server window be a QDockWindow
-//void Game::toggleStartServer()
-//{
-//    if (server->isListening()) {
-//        server->stopServer();
-//        serverButton->setButtonName("Start Server");
-//    } else {
-//        if (!server->listen(QHostAddress::Any, 1967)) {
-//            QMessageBox::critical(this, tr("Error"), tr("Unable to start the server"));
-//            return;
-//        }
-//        serverButton->setButtonName("Stop Server");
-//    }
-//}
 
 void Game::addPlayer()
 {
-    Player *newPlayer = new Player();
-    HealthBar *newPlayerHealthBar = new HealthBar(newPlayer);
-    newPlayerHealthBar->setZValue(1);
-//    otherPlayers.append(newPlayer);
-    otherPlayer = newPlayer;
-    otherPlayerHealthBar = newPlayerHealthBar;
-
-    QRectF newSceneRect(0, 0, width(), height());
-    QPointF center(newSceneRect.center());
-    QPointF playerAdjust(newPlayer->getSize() / 2, newPlayer->getSize() / 2);
-    newPlayer->setPos(center - playerAdjust);
-    newPlayerHealthBar->setPos(newSceneRect.width() / 2 - 100, newSceneRect.height() - 100);
-
+    otherPlayer->setVisible(true);
+//    otherPlayerHealthBar->setVisible(true);
+    pauseButton->setEnabled(false);
+    pauseButton->setVisible(false);
     gameStart();
 }
 

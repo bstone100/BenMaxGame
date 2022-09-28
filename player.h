@@ -1,7 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include "QtCore/quuid.h"
 #include "gun.h"
+#include "healthbar.h"
 #include <QGraphicsRectItem>
 
 class Player : public QObject, public QGraphicsPixmapItem
@@ -39,11 +41,20 @@ public:
     const QString &getName() const;
     void setName(const QString &newName);
 
+    const QUuid &getId() const;
+
+    int getScore() const;
+    void setScore(int newScore);
+
+    qreal getMouseAngle() const;
+    void setMouseAngle(qreal newMouseAngle);
+
+    QPointF getTempPos() const;
+
+    HealthBar *getHealthBar() const;
+
 protected:
     void advance(int step) override;
-
-signals:
-    void moved(const QPointF &pos);
 
 private:
     int size;
@@ -51,7 +62,13 @@ private:
     bool up, down, left, right;
     Gun *gun;
     int health, startHealth;
+    HealthBar *healthBar;
+    int score;
+    qreal mouseAngle;
     QString name;
+    QPointF tempPos;
+
+    QUuid id;
 };
 
 #endif // PLAYER_H

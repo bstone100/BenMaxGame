@@ -19,7 +19,8 @@ int main(int argc, char *argv[])
 
     MainWindow *w = new MainWindow();
     w->setMaximumSize(QGuiApplication::primaryScreen()->size());
-    w->setMinimumSize(900, 600);
+//    w->setMinimumSize(900, 600);
+    w->setMinimumSize(500, 500);
     w->setWindowTitle("BenMaxGame");
 
     QGraphicsScene scene;

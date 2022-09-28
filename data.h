@@ -4,24 +4,73 @@
 
 #include "QtCore/qpoint.h"
 #include <QVector>
+#include "bullet.h"
+#include "enemy.h"
+#include "player.h"
+
 class Data
 {
 public:
     Data();
-    Data(QPointF pos, double angle, int h, int s);
-    QDataStream &operator<<(QDataStream &ds);
-    QDataStream &operator >> (QDataStream &ds);
+    Data(QString type);
+
+    friend QDataStream &operator<<(QDataStream &ds, const Data &data);
+    friend QDataStream &operator>>(QDataStream &ds, Data &data);
+
+    const QString &getType() const;
+    void setType(const QString &newType);
+
     QPointF getPlayerPos() const;
 
-    double getMouseAngle() const;
+    qreal getPlayerMouseAngle() const;
 
-    int getHealth() const;
+    void setPlayerPos(QPointF newPlayerPos);
+
+    void setPlayerMouseAngle(qreal newPlayerMouseAngle);
+
+    qreal getBulletAngle() const;
+    void setBulletAngle(qreal newBulletAngle);
+
+    int getEnemyVelo() const;
+    void setEnemyVelo(int newEnemyVelo);
+
+    QPointF getBulletGunTip() const;
+    void setBulletGunTip(QPointF newBulletGunTip);
+
+    QPointF getEnemyStartPoint() const;
+    void setEnemyStartPoint(QPointF newEnemyStartPoint);
+
+    QPointF getEnemyPlayerCenter() const;
+    void setEnemyPlayerCenter(QPointF newEnemyPlayerCenter);
+
+    int getPlayerHealth() const;
+    void setPlayerHealth(int newPlayerHealth);
+
+    int getPlayerScore() const;
+    void setPlayerScore(int newPlayerScore);
+
+    int getEnemySize() const;
+    void setEnemySize(int newEnemySize);
 
 private:
+    QString type;
+
+    // player
     QPointF playerPos;
-    double mouseAngle;
-    int health;
-    int score;
+    qreal playerMouseAngle;
+    int playerHealth;
+    int playerScore;
+
+
+    // bullet
+    QPointF bulletGunTip;
+    qreal bulletAngle;
+
+    // enemy
+    QPointF enemyStartPoint;
+    QPointF enemyPlayerCenter;
+    int enemyVelo;
+    int enemySize;
 };
 
 #endif // DATA_H

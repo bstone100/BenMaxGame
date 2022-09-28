@@ -7,22 +7,61 @@ Data::Data()
 
 }
 
-Data::Data(QPointF pos, double angle, int h, int s)
-    : playerPos(pos), mouseAngle(angle), health(h), score(s)
+Data::Data(QString type)
+    : type(type)
 {
 
 }
 
-QDataStream &Data::operator<<(QDataStream &ds)
+QDataStream &operator<<(QDataStream &ds, const Data &data)
 {
-    ds << playerPos << mouseAngle << health << score;
+    ds << data.type;
+    QString t(data.type);
+    if (t == "playerMove") {
+        ds << data.playerPos;
+        ds << data.playerMouseAngle;
+        ds << data.playerHealth;
+        ds << data.playerScore;
+    } else if (t == "newBullet") {
+        ds << data.bulletGunTip;
+        ds << data.bulletAngle;
+    } else if (t == "newEnemy") {
+        ds << data.enemyStartPoint;
+        ds << data.enemyPlayerCenter;
+        ds << data.enemyVelo;
+        ds << data.enemySize;
+    }
+    return ds;
+}
+QDataStream &operator>>(QDataStream &ds, Data &data)
+{
+    ds >> data.type;
+    QString t(data.type);
+    if (t == "playerMove") {
+        ds >> data.playerPos;
+        ds >> data.playerMouseAngle;
+        ds >> data.playerHealth;
+        ds >> data.playerScore;
+    } else if (t == "newBullet") {
+        ds >> data.bulletGunTip;
+        ds >> data.bulletAngle;
+    } else if (t == "newEnemy") {
+        ds >> data.enemyStartPoint;
+        ds >> data.enemyPlayerCenter;
+        ds >> data.enemyVelo;
+        ds >> data.enemySize;
+    }
     return ds;
 }
 
-QDataStream &Data::operator >>(QDataStream &ds)
+const QString &Data::getType() const
 {
-    ds >> playerPos >> mouseAngle >> health >> score;
-    return ds;
+    return type;
+}
+
+void Data::setType(const QString &newType)
+{
+    type = newType;
 }
 
 QPointF Data::getPlayerPos() const
@@ -30,12 +69,97 @@ QPointF Data::getPlayerPos() const
     return playerPos;
 }
 
-double Data::getMouseAngle() const
+qreal Data::getPlayerMouseAngle() const
 {
-    return mouseAngle;
+    return playerMouseAngle;
 }
 
-int Data::getHealth() const
+void Data::setPlayerPos(QPointF newPlayerPos)
 {
-    return health;
+    playerPos = newPlayerPos;
+}
+
+void Data::setPlayerMouseAngle(qreal newPlayerMouseAngle)
+{
+    playerMouseAngle = newPlayerMouseAngle;
+}
+
+qreal Data::getBulletAngle() const
+{
+    return bulletAngle;
+}
+
+void Data::setBulletAngle(qreal newBulletAngle)
+{
+    bulletAngle = newBulletAngle;
+}
+
+int Data::getEnemyVelo() const
+{
+    return enemyVelo;
+}
+
+void Data::setEnemyVelo(int newEnemyVelo)
+{
+    enemyVelo = newEnemyVelo;
+}
+
+QPointF Data::getBulletGunTip() const
+{
+    return bulletGunTip;
+}
+
+void Data::setBulletGunTip(QPointF newBulletGunTip)
+{
+    bulletGunTip = newBulletGunTip;
+}
+
+QPointF Data::getEnemyStartPoint() const
+{
+    return enemyStartPoint;
+}
+
+void Data::setEnemyStartPoint(QPointF newEnemyStartPoint)
+{
+    enemyStartPoint = newEnemyStartPoint;
+}
+
+QPointF Data::getEnemyPlayerCenter() const
+{
+    return enemyPlayerCenter;
+}
+
+void Data::setEnemyPlayerCenter(QPointF newEnemyPlayerCenter)
+{
+    enemyPlayerCenter = newEnemyPlayerCenter;
+}
+
+int Data::getPlayerHealth() const
+{
+    return playerHealth;
+}
+
+void Data::setPlayerHealth(int newPlayerHealth)
+{
+    playerHealth = newPlayerHealth;
+}
+
+int Data::getPlayerScore() const
+{
+    return playerScore;
+}
+
+void Data::setPlayerScore(int newPlayerScore)
+{
+    playerScore = newPlayerScore;
+}
+
+int Data::getEnemySize() const
+{
+    return enemySize;
+}
+
+void Data::setEnemySize(int newEnemySize)
+{
+    enemySize = newEnemySize;
 }

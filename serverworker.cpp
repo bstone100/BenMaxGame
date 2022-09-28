@@ -46,7 +46,7 @@ void ServerWorker::sendData(Data &data)
 {
     QDataStream socketStream(m_serverSocket);
     socketStream.setVersion(QDataStream::Qt_5_7);
-    data.operator<<(socketStream);
+    socketStream << data;
 }
 
 void ServerWorker::disconnectFromClient()
@@ -105,14 +105,27 @@ void ServerWorker::receiveJson()
 void ServerWorker::receiveData()
 {
 
+//    QDataStream socketStream(m_serverSocket);
+//    socketStream.setVersion(QDataStream::Qt_5_7);
+//    Data gameData;
+//    socketStream >> gameData;
+
+//    // emit signal to server containing the data
+//    // server will broadcast data to clients
+//    emit dataReceived(gameData);
+
     QDataStream socketStream(m_serverSocket);
     socketStream.setVersion(QDataStream::Qt_5_7);
     Data gameData;
-    gameData.operator>>(socketStream);
-
-    // emit signal to server containing the data
-    // server will broadcast data to clients
-    emit dataReceived(gameData);
+    for (;;) {
+        socketStream.startTransaction();
+        socketStream >> gameData;
+        if (socketStream.commitTransaction()) {
+            emit dataReceived(gameData);
+        } else {
+            break;
+        }
+    }
 }
 
 
