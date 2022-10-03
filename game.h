@@ -4,7 +4,6 @@
 #include "button.h"
 #include "chatclient.h"
 #include "chatserver.h"
-#include "chatwindow.h"
 #include "enemy.h"
 #include "player.h"
 #include "bullet.h"
@@ -14,6 +13,16 @@ class Game : public QGraphicsView
 {
     Q_OBJECT
 public:
+    enum GameMode {
+        Solo,
+        Multiplayer
+    };
+
+    enum Status {
+        Host,
+        Guest
+    };
+
     Game(QGraphicsScene *scene, QWidget *parent = nullptr);
 
     void mainFunction();
@@ -43,23 +52,30 @@ public:
 
     void setScore(int newScore);
 
-    void addPlayer();
-
-    void moveOtherPlayer(QPointF pos);
+    void startSoloGame();
+    void startServerGame();
 
     void toggleStartServer();
     void attemptConnection();
     void error(QAbstractSocket::SocketError socketError);
 
     void sendPlayerData();
+    void sendNewPlayerData();
     void sendNewBulletData(QPointF gunTip, qreal angle);
     void sendNewEnemyData(QPointF startPoint, QPointF playerCenter, int velo, int size);
+    void sendServerFull(int totalPlayers);
     void sendGameOver();
 
     void receiveData(Data data);
 
-
+    void connectedToServer();
+    void disconnectedFromServer();
 private:
+    GameMode mode;
+    Status status;
+
+    int serverSize;
+
     bool upHeld, downHeld, leftHeld, rightHeld;
 
     QPointF mouseTip, playerCenter, gunTip;
@@ -74,9 +90,9 @@ private:
     QVector<Enemy *> enemies;
     Enemy *newestEnemy;
 
-//    QVector<Player *> otherPlayers;
-    Player *otherPlayer;
-//    HealthBar *otherPlayerHealthBar;
+    QMap<QUuid, Player *> otherPlayersMap;
+
+//    Player *otherPlayer;
 
     QTimer *mainTimer;
     QTimer *shotsTimer;
@@ -102,13 +118,7 @@ private:
     bool gameStarted;
     bool gamePaused;
 
-    Button *playButton;
     Button *pauseButton;
-
-//    Button *serverButton;
-
-//    ChatServer *server;
-//    ChatWindow *chatWindow;
 
     // local solo game
     // connect to gameStart()
@@ -122,7 +132,7 @@ private:
 
     // will be used if this computer is host
     ChatServer *server;
-    // will be used if this computer is not host
+
     ChatClient *client;
 
 };

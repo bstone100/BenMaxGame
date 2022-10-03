@@ -46,6 +46,11 @@ void Enemy::advance(int step)
     }
 }
 
+bool Enemy::getDead() const
+{
+    return dead;
+}
+
 qreal Enemy::getAngle() const
 {
     return angle;
@@ -89,7 +94,7 @@ void Enemy::setVelo(int newVelo)
 void Enemy::startExplosion()
 {
     dead = true;
-    delete healthBar;
+    healthBar->setVisible(false);
     setOpacity(.5);
     setTransformOriginPoint(boundingRect().center());
 }

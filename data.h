@@ -11,14 +11,20 @@
 class Data
 {
 public:
+    enum DataType {
+        PlayerMove,
+        NewPlayer,
+        NewBullet,
+        NewEnemy,
+        ServerFull,
+        GameOver,
+    };
+
     Data();
-    Data(QString type);
+    Data(DataType type);
 
     friend QDataStream &operator<<(QDataStream &ds, const Data &data);
     friend QDataStream &operator>>(QDataStream &ds, Data &data);
-
-    const QString &getType() const;
-    void setType(const QString &newType);
 
     QPointF getPlayerPos() const;
 
@@ -52,10 +58,23 @@ public:
     int getEnemySize() const;
     void setEnemySize(int newEnemySize);
 
+    DataType getType() const;
+    void setType(DataType newType);
+
+    const QUuid &getPlayerId() const;
+    void setPlayerId(const QUuid &newPlayerId);
+
+    int getServerSize() const;
+    void setServerSize(int newServerSize);
+
 private:
-    QString type;
+    DataType type;
+
+    // general
+    int serverSize;
 
     // player
+    QUuid playerId;
     QPointF playerPos;
     qreal playerMouseAngle;
     int playerHealth;

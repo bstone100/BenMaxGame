@@ -14,14 +14,10 @@ class ChatClient : public QObject
 public:
     explicit ChatClient(QObject *parent = nullptr);
     QTcpSocket *clientSocket() const;
-
 public slots:
     void connectToServer(const QHostAddress &address, quint16 port);
-    void login(const QString &userName);
-    void sendMessage(const QPointF &pos);
     void disconnectFromHost();
 private slots:
-    void onReadyRead();
     void dataIncoming();
 signals:
     void connected();

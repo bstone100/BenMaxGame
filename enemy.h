@@ -40,6 +40,8 @@ public:
     qreal getAngle() const;
     void setAngle(qreal newAngle);
 
+    bool getDead() const;
+
 protected:
     void advance(int step) override;
 

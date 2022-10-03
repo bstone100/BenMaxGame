@@ -10,7 +10,7 @@ class Player : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
 public:
-    Player(QGraphicsItem *parent = nullptr);
+    Player(QUuid id);
 
     bool getUp() const;
     void setUp(bool newUp);
@@ -53,6 +53,12 @@ public:
 
     HealthBar *getHealthBar() const;
 
+    void setId(const QUuid &newId);
+
+    void startExplosion();
+
+    bool getDead() const;
+
 protected:
     void advance(int step) override;
 
@@ -67,6 +73,9 @@ private:
     qreal mouseAngle;
     QString name;
     QPointF tempPos;
+
+    bool dead;
+    qreal scale;
 
     QUuid id;
 };

@@ -16,6 +16,10 @@ Button::Button(QString name)
 
 void Button::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
+    if (!enabled) {
+        painter->setOpacity(.8);
+    }
+
     painter->setPen(Qt::NoPen);
     painter->setBrush(buttonColor);
     painter->drawRoundedRect(rect(), rect().width() / 6, rect().width() / 6);
@@ -69,6 +73,7 @@ bool Button::getPressed() const
 void Button::setButtonName(const QString &newButtonName)
 {
     buttonName = newButtonName;
+    update();
 }
 
 void Button::setIcon(const QPixmap &newIcon)
@@ -89,4 +94,5 @@ bool Button::getEnabled() const
 void Button::setEnabled(bool newEnabled)
 {
     enabled = newEnabled;
+    update();
 }

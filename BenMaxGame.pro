@@ -13,7 +13,6 @@ SOURCES += \
     button.cpp \
     chatclient.cpp \
     chatserver.cpp \
-    chatwindow.cpp \
     data.cpp \
     enemy.cpp \
     game.cpp \
@@ -29,7 +28,6 @@ HEADERS += \
     button.h \
     chatclient.h \
     chatserver.h \
-    chatwindow.h \
     data.h \
     enemy.h \
     game.h \

@@ -37,6 +37,16 @@ void Bullet::advance(int step)
     }
 }
 
+bool Bullet::getIsPrimaryBullet() const
+{
+    return isPrimaryBullet;
+}
+
+void Bullet::setIsPrimaryBullet(bool newIsPrimaryBullet)
+{
+    isPrimaryBullet = newIsPrimaryBullet;
+}
+
 QPointF Bullet::getTempPos() const
 {
     return tempPos;

@@ -28,6 +28,9 @@ public:
 
     QPointF getTempPos() const;
 
+    bool getIsPrimaryBullet() const;
+    void setIsPrimaryBullet(bool newIsPrimaryBullet);
+
 protected:
     void advance(int step) override;
 
@@ -43,6 +46,8 @@ private:
     qreal scale;
 
     QPointF tempPos;
+
+    bool isPrimaryBullet;
 };
 
 #endif // BULLET_H
