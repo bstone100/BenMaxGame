@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     menuBar->addMenu(fileMenu);
 
     QAction *startAction = new QAction("Start Game", fileMenu);
-    QObject::connect(startAction, &QAction::triggered, &view, &Game::gameStart);
+    QObject::connect(startAction, &QAction::triggered, &view, &Game::startSoloGame);
     fileMenu->addAction(startAction);
 
     QAction *minimizeAction = new QAction("Minimize Window", fileMenu);

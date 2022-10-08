@@ -23,8 +23,11 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
 
     serverSize = 0;
 
+    fps = 0;
+
     mainTimer = new QTimer();
     QObject::connect(mainTimer, &QTimer::timeout, this, &Game::mainFunction);
+    // calculations happen 100 times per second
     mainTimer->setInterval(10);
 
     shotsTimer = new QTimer();
@@ -41,6 +44,16 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &Game::generateEnemy);
     makeEnemyTimer->setInterval(200);
 //    makeEnemyTimer->setInterval(1500);
+
+    fpsTimer = new QTimer();
+    QObject::connect(fpsTimer, &QTimer::timeout, this, &Game::setFps);
+    fpsTimer->setInterval(100);
+
+    fpsText = new QGraphicsTextItem("0");
+    fpsText->setDefaultTextColor(Qt::white);
+    scene->addItem(fpsText);
+    fpsText->setZValue(1);
+
 
     player = new Player(QUuid::createUuid());
 //    playerHealthBar = new HealthBar(player);
@@ -113,6 +126,8 @@ void Game::mainFunction()
     cleanUpScene();
     bulletImpact();
     enemyImpact();
+
+    fps++;
 }
 
 void Game::keyPressEvent(QKeyEvent *event)
@@ -244,6 +259,8 @@ void Game::mouseReleaseEvent(QMouseEvent *event)
     delayTimer->stop();
 }
 
+// maybe text and background should fit to scale but game items should be adjusted
+// maybe position of game items should be adjusted but they should keep their size
 void Game::resizeEvent(QResizeEvent *event)
 {
     QRectF newSceneRect(0, 0, width(), height());
@@ -262,6 +279,9 @@ void Game::resizeEvent(QResizeEvent *event)
     highScoreText->setFont(QFont("Arial", width() / 20, QFont::Bold));
     QRectF highScoreAdjust = highScoreText->boundingRect();
     highScoreText->setPos(width() - highScoreAdjust.width(), height() - highScoreAdjust.height());
+
+    fpsText->setFont(QFont("Arial", width() / 50, QFont::Bold));
+    fpsText->setPos(0, 0);
 
     pauseButton->setRect(0, 0, width() / 20, width() / 20);
     QRectF pauseButtonAdjust = pauseButton->boundingRect();
@@ -504,6 +524,7 @@ void Game::gameStart()
     gameStarted = true;
 
     mainTimer->start();
+    fpsTimer->start();
     makeEnemyTimer->start();
 }
 
@@ -563,6 +584,8 @@ void Game::gameEnd()
 
 
     mainTimer->stop();
+    fpsTimer->stop();
+    fps = 0;
     shotsTimer->stop();
     delayTimer->stop();
     makeEnemyTimer->stop();
@@ -582,6 +605,8 @@ void Game::gamePause()
     gamePaused = !gamePaused;
     if (gamePaused) {
         mainTimer->stop();
+        fpsTimer->stop();
+        fps = 0;
         shotsTimer->stop();
         delayTimer->stop();
         makeEnemyTimer->stop();
@@ -589,6 +614,7 @@ void Game::gamePause()
 //        pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPlay));
     } else {
         mainTimer->start();
+        fpsTimer->start();
         makeEnemyTimer->start();
         pauseButton->setButtonName("II");
 //        pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPause));
@@ -603,6 +629,13 @@ void Game::setScore(int newScore)
         level += 500;
         enemyVelo++;
     }
+}
+
+void Game::setFps()
+{
+    float scale = 1000 / (float)(fpsTimer->interval());
+    fpsText->setPlainText(QString::number((int)((float)fps * scale)));
+    fps = 0;
 }
 
 void Game::toggleStartServer()

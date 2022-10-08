@@ -8,6 +8,7 @@
 #include "player.h"
 #include "bullet.h"
 #include <QGraphicsView>
+#include <QElapsedTimer>
 
 class Game : public QGraphicsView
 {
@@ -51,6 +52,7 @@ public:
     void gamePause();
 
     void setScore(int newScore);
+    void setFps();
 
     void startSoloGame();
     void startServerGame();
@@ -76,6 +78,8 @@ private:
 
     int serverSize;
 
+    int fps;
+
     bool upHeld, downHeld, leftHeld, rightHeld;
 
     QPointF mouseTip, playerCenter, gunTip;
@@ -92,14 +96,16 @@ private:
 
     QMap<QUuid, Player *> otherPlayersMap;
 
-//    Player *otherPlayer;
-
     QTimer *mainTimer;
     QTimer *shotsTimer;
     QTimer *delayTimer;
     QTimer *cleanUpTimer;
     QTimer *makeEnemyTimer;
     QTimer *bulletImpactTimer;
+    QTimer *fpsTimer;
+
+    QThread *bulletThread;
+    QThread *enemyThread;
 
     QGraphicsLineItem *xAxis;
     QGraphicsLineItem *yAxis;
@@ -110,6 +116,7 @@ private:
     QGraphicsTextItem *title;
     QGraphicsTextItem *scoreText;
     QGraphicsTextItem *highScoreText;
+    QGraphicsTextItem *fpsText;
 
     int enemyVelo;
     int level;
