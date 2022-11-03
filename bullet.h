@@ -1,11 +1,13 @@
 #ifndef BULLET_H
 #define BULLET_H
 
+#include "QtCore/quuid.h"
 #include <QGraphicsEllipseItem>
 
 class Bullet : public QObject, public QGraphicsEllipseItem
 {
 public:
+    Bullet();
     Bullet(QPointF gunTip, qreal angle);
 
     int getSize() const;
@@ -16,18 +18,36 @@ public:
 
     void startExplosion();
 
+    QPointF getGunTip() const;
+
+    qreal getAngle() const;
+
+    void setGunTip(QPointF newGunTip);
+
+    void setAngle(qreal newAngle);
+
+    QPointF getTempPos() const;
+
+    bool getIsPrimaryBullet() const;
+    void setIsPrimaryBullet(bool newIsPrimaryBullet);
+
 protected:
     void advance(int step) override;
 
 private:
     int size;
     int velo;
+    QPointF gunTip;
     qreal angle;
 
     int damage;
 
     bool dead;
     qreal scale;
+
+    QPointF tempPos;
+
+    bool isPrimaryBullet;
 };
 
 #endif // BULLET_H

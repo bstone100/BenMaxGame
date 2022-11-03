@@ -7,7 +7,7 @@ class Button : public QObject, public QGraphicsRectItem
 {
     Q_OBJECT
 public:
-    Button(QString name);
+    Button(QString primaryName, QString altName, bool wait = false);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
@@ -23,13 +23,27 @@ public:
 
     void setFontDivisor(int newFontDivisor);
 
+    bool getEnabled() const;
+    void setEnabled(bool newEnabled);
+
+    void setNameAlt();
+    void setNamePrimary();
+    void reset();
+
 signals:
     void clicked();
 
 private:
     Qt::GlobalColor buttonColor;
+
     QString buttonName;
+    QString primaryName;
+    QString altName;
+
+    bool waitForSomething;
+
     bool pressed;
+    bool enabled;
     QPixmap icon;
     int fontDivisor;
 };

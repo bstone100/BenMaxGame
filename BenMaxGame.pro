@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui network concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -11,23 +11,33 @@ CONFIG += c++17
 SOURCES += \
     bullet.cpp \
     button.cpp \
+    chatclient.cpp \
+    chatserver.cpp \
+    data.cpp \
     enemy.cpp \
-    graphicsview.cpp \
+    game.cpp \
     gun.cpp \
     healthbar.cpp \
     main.cpp \
     mainwindow.cpp \
-    player.cpp
+    player.cpp \
+    playerinfo.cpp \
+    serverworker.cpp
 
 HEADERS += \
     bullet.h \
     button.h \
+    chatclient.h \
+    chatserver.h \
+    data.h \
     enemy.h \
-    graphicsview.h \
+    game.h \
     gun.h \
     healthbar.h \
     mainwindow.h \
-    player.h
+    player.h \
+    playerinfo.h \
+    serverworker.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

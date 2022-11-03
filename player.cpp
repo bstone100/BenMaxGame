@@ -2,9 +2,10 @@
 #include "QKeyEvent"
 #include "QDebug"
 #include "QtWidgets/qgraphicsscene.h"
+#include <QUuid>
 
-Player::Player(QGraphicsItem *parent)
-    : QGraphicsPixmapItem(parent)
+Player::Player(QUuid id, QString name)
+    : id(id), name(name)
 {
     size = 50;
     setPixmap(QPixmap(":/images/bstone1oo.jpg"));
@@ -19,20 +20,101 @@ Player::Player(QGraphicsItem *parent)
     gun = new Gun(this);
 
     health = startHealth = 500;
+    healthBar = new HealthBar(this);
+    playerInfo = new PlayerInfo(this);
+
+    score = 0;
+    mouseAngle = 0;
+
+    dead = false;
+    scale = 1;
 }
 
 void Player::advance(int step)
 {
     if (!step) return;
 
-    if (left && x() > 0)
-        moveBy(-velo, 0);
-    if (right && x() < scene()->width() - size)
-        moveBy(velo, 0);
-    if (up && y() > 0)
-        moveBy(0, -velo);
-    if (down && y() < scene()->height() - size)
-        moveBy(0, velo);
+    if (!dead) {
+        if (left && x() > 0)
+            moveBy(-velo, 0);
+        if (right && x() < scene()->width() - size)
+            moveBy(velo, 0);
+        if (up && y() > 0)
+            moveBy(0, -velo);
+        if (down && y() < scene()->height() - size)
+            moveBy(0, velo);
+    } else {
+        setScale(scale);
+        if (scale >= 3) {
+            scene()->removeItem(this);
+        } else {
+            scale += .1;
+        }
+    }
+}
+
+bool Player::getDead() const
+{
+    return dead;
+}
+
+void Player::setId(const QUuid &newId)
+{
+    id = newId;
+}
+
+void Player::startExplosion()
+{
+    dead = true;
+    healthBar->setVisible(false);
+    playerInfo->setVisible(false);
+    setOpacity(.5);
+    setTransformOriginPoint(boundingRect().center());
+}
+
+HealthBar *Player::getHealthBar() const
+{
+    return healthBar;
+}
+
+QPointF Player::getTempPos() const
+{
+    return tempPos;
+}
+
+qreal Player::getMouseAngle() const
+{
+    return mouseAngle;
+}
+
+void Player::setMouseAngle(qreal newMouseAngle)
+{
+    mouseAngle = newMouseAngle;
+}
+
+int Player::getScore() const
+{
+    return score;
+}
+
+void Player::setScore(int newScore)
+{
+    score = newScore;
+}
+
+const QUuid &Player::getId() const
+{
+    return id;
+}
+
+const QString &Player::getName() const
+{
+    return name;
+}
+
+void Player::setName(const QString &newName)
+{
+    name = newName;
 }
 
 int Player::getStartHealth() const
@@ -49,6 +131,13 @@ void Player::resetProperties()
 {
     health = startHealth;
     up = down = left = right = false;
+    dead = false;
+    healthBar->setVisible(true);
+    playerInfo->setVisible(true);
+    setOpacity(1);
+    score = 0;
+    scale = 1;
+    setScale(scale);
     gun->rotate(90);
 }
 

@@ -1,11 +1,13 @@
 #include "bullet.h"
 #include "QtWidgets/qgraphicsscene.h"
-#include "graphicsview.h"
+#include "game.h"
+#include <QUuid>
 
 Bullet::Bullet(QPointF gunTip, qreal angle)
 {
     size = 8;
     velo = 10;
+    this->gunTip = gunTip;
     this->angle = angle;
     setRect(0, 0, size, size);
     setPos(gunTip.x() - size / 2, gunTip.y() - size / 2);
@@ -33,6 +35,41 @@ void Bullet::advance(int step)
             scale += .1;
         }
     }
+}
+
+bool Bullet::getIsPrimaryBullet() const
+{
+    return isPrimaryBullet;
+}
+
+void Bullet::setIsPrimaryBullet(bool newIsPrimaryBullet)
+{
+    isPrimaryBullet = newIsPrimaryBullet;
+}
+
+QPointF Bullet::getTempPos() const
+{
+    return tempPos;
+}
+
+void Bullet::setAngle(qreal newAngle)
+{
+    angle = newAngle;
+}
+
+void Bullet::setGunTip(QPointF newGunTip)
+{
+    gunTip = newGunTip;
+}
+
+qreal Bullet::getAngle() const
+{
+    return angle;
+}
+
+QPointF Bullet::getGunTip() const
+{
+    return gunTip;
 }
 
 int Bullet::getDamage() const

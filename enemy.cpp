@@ -6,11 +6,12 @@
 
 int sizes[] = {30, 50, 70, 90, 110, 130, 150};
 
-Enemy::Enemy(QPointF startPoint, QPointF playerCenter, int velo)
+Enemy::Enemy(QPointF startPoint, QPointF playerCenter, int velo, int size)
 {
+    this->startPoint = startPoint;
+    this->playerCenter = playerCenter;
     this->velo = velo;
-
-    size = sizes[QRandomGenerator::system()->bounded(7)];
+    this->size = size;
     QPointF centerPoint(startPoint.x() + size / 2, startPoint.y() + size / 2);
     QLineF mouseLine(centerPoint, playerCenter);
     angle = qDegreesToRadians(mouseLine.angle());
@@ -42,12 +43,42 @@ void Enemy::advance(int step)
         } else {
             scale += .1;
         }
-//        if (scale <= 0) {
-//            deleteLater();
-//        } else {
-//            scale -= .05;
-//        }
     }
+}
+
+bool Enemy::getDead() const
+{
+    return dead;
+}
+
+qreal Enemy::getAngle() const
+{
+    return angle;
+}
+
+void Enemy::setAngle(qreal newAngle)
+{
+    angle = newAngle;
+}
+
+const QPixmap &Enemy::getTempPix() const
+{
+    return tempPix;
+}
+
+QPointF Enemy::getTempPos() const
+{
+    return tempPos;
+}
+
+QPointF Enemy::getPlayerCenter() const
+{
+    return playerCenter;
+}
+
+QPointF Enemy::getStartPoint() const
+{
+    return startPoint;
 }
 
 int Enemy::getVelo() const
@@ -63,7 +94,7 @@ void Enemy::setVelo(int newVelo)
 void Enemy::startExplosion()
 {
     dead = true;
-    delete healthBar;
+    healthBar->setVisible(false);
     setOpacity(.5);
     setTransformOriginPoint(boundingRect().center());
 }

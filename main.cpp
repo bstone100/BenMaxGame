@@ -1,8 +1,9 @@
+#include "QtCore/qsettings.h"
 #include "QtCore/qtimer.h"
 #include "QtGui/qpainter.h"
 #include "QtWidgets/qgraphicsview.h"
 #include "QtWidgets/qmenubar.h"
-#include "graphicsview.h"
+#include "game.h"
 #include "gun.h"
 #include "healthbar.h"
 #include "mainwindow.h"
@@ -10,6 +11,7 @@
 #include "QScreen"
 #include "QPushButton"
 #include "QStyle"
+#include "QLayout"
 
 #include <QApplication>
 
@@ -19,13 +21,17 @@ int main(int argc, char *argv[])
 
     MainWindow *w = new MainWindow();
     w->setMaximumSize(QGuiApplication::primaryScreen()->size());
-    w->setMinimumSize(900, 600);
+    w->setMinimumSize(QGuiApplication::primaryScreen()->size() / 2);
     w->setWindowTitle("BenMaxGame");
 
     QGraphicsScene scene;
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
+    // multiplayer games need to be same size in terms of pixels
+    scene.setSceneRect(0, 0, 1440, 900);
+//    scene.setSceneRect(0, 0, 2560, 1440);
+    scene.setBackgroundBrush(Qt::black);
 
-    GraphicsView view(&scene);
+    Game view(&scene);
     view.setMouseTracking(true);
     view.setRenderHint(QPainter::Antialiasing);
     view.setCacheMode(QGraphicsView::CacheBackground);
@@ -38,7 +44,7 @@ int main(int argc, char *argv[])
     menuBar->addMenu(fileMenu);
 
     QAction *startAction = new QAction("Start Game", fileMenu);
-    QObject::connect(startAction, &QAction::triggered, &view, &GraphicsView::gameStart);
+    QObject::connect(startAction, &QAction::triggered, &view, &Game::startSoloGame);
     fileMenu->addAction(startAction);
 
     QAction *minimizeAction = new QAction("Minimize Window", fileMenu);

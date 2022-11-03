@@ -3,6 +3,8 @@
 #include "QMenuBar"
 #include "QGraphicsView"
 #include "QGraphicsRectItem"
+#include "QtGui/qscreen.h"
+#include "QtWidgets/qapplication.h"
 #include "player.h"
 #include "QTimer"
 

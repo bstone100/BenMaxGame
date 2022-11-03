@@ -13,12 +13,22 @@ HealthBar::HealthBar(Enemy *enemy)
     setPos(0, enemy->getSize() + 10);
 }
 
-HealthBar::HealthBar(Player *player)
+HealthBar::HealthBar(Player *player, Type t)
 {
     this->player = player;
     enemy = NULL;
-    fullRect = QRectF(0, 0, 200, 25);
-    healthRect = QRectF(0, 0, 0, 25);
+
+    switch (t) {
+    case Moving:
+        setParentItem(player);
+        fullRect = QRectF(0, 0, player->getSize(), 5);
+        healthRect = QRectF(0, 0, 0, 5);
+        setPos(0, player->getSize() + 10);
+        break;
+    case Still:
+        fullRect = QRectF(0, 0, 200, 25);
+        healthRect = QRectF(0, 0, 0, 25);
+    }
 }
 
 QRectF HealthBar::boundingRect() const
@@ -49,6 +59,11 @@ void HealthBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidg
 
     if (health > 0)
         painter->drawRect(healthRect);
+}
+
+const QRectF &HealthBar::getFullRect() const
+{
+    return fullRect;
 }
 
 
