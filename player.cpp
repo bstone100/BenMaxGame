@@ -4,8 +4,8 @@
 #include "QtWidgets/qgraphicsscene.h"
 #include <QUuid>
 
-Player::Player(QUuid id)
-    : id(id)
+Player::Player(QUuid id, QString name)
+    : id(id), name(name)
 {
     size = 50;
     setPixmap(QPixmap(":/images/bstone1oo.jpg"));
@@ -21,6 +21,7 @@ Player::Player(QUuid id)
 
     health = startHealth = 500;
     healthBar = new HealthBar(this);
+    playerInfo = new PlayerInfo(this);
 
     score = 0;
     mouseAngle = 0;
@@ -66,6 +67,7 @@ void Player::startExplosion()
 {
     dead = true;
     healthBar->setVisible(false);
+    playerInfo->setVisible(false);
     setOpacity(.5);
     setTransformOriginPoint(boundingRect().center());
 }
@@ -131,6 +133,7 @@ void Player::resetProperties()
     up = down = left = right = false;
     dead = false;
     healthBar->setVisible(true);
+    playerInfo->setVisible(true);
     setOpacity(1);
     score = 0;
     scale = 1;

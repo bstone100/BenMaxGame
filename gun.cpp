@@ -19,6 +19,7 @@ Gun::Gun(QGraphicsItem *parent)
     setTransformOriginPoint(25, 25);
 
     setPen(Qt::NoPen);
+
     setBrush(QBrush(Qt::white));
 
 }

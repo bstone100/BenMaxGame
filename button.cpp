@@ -4,25 +4,30 @@
 
 QColor textColor(45, 33 ,90);
 
-Button::Button(QString name)
+Button::Button(QString primaryName, QString altName, bool wait)
+    : buttonName(primaryName), primaryName(primaryName), altName(altName),
+      waitForSomething(wait)
 {
     setRect(0, 0, 200, 100);
-    buttonName = name;
     buttonColor = Qt::white;
     pressed = false;
     fontDivisor = 4;
     enabled = true;
+    setBoundingRegionGranularity(1);
 }
 
 void Button::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
     if (!enabled) {
-        painter->setOpacity(.8);
+        painter->setOpacity(.5);
     }
 
     painter->setPen(Qt::NoPen);
     painter->setBrush(buttonColor);
-    painter->drawRoundedRect(rect(), rect().width() / 6, rect().width() / 6);
+    double num = 0;
+    rect().height() < rect().width() ? num = rect().height() : num = rect().width();
+    num *= .25;
+    painter->drawRoundedRect(rect(), num, num);
 
     painter->setPen(textColor);
     painter->setFont(QFont("Arial", rect().width() / fontDivisor, QFont::Bold));
@@ -36,7 +41,7 @@ void Button::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget 
 void Button::mouseMove(QPointF pos)
 {
     if (pressed) {
-        if (sceneBoundingRect().contains(pos)) {
+        if (boundingRegion(sceneTransform()).contains(pos.toPoint())) {
             buttonColor = Qt::gray;
         } else {
             buttonColor = Qt::white;
@@ -47,7 +52,7 @@ void Button::mouseMove(QPointF pos)
 
 void Button::mousePress(QPointF pos)
 {
-    if (sceneBoundingRect().contains(pos)) {
+    if (boundingRegion(sceneTransform()).contains(pos.toPoint())) {
         buttonColor = Qt::gray;
         pressed = true;
         update();
@@ -57,8 +62,15 @@ void Button::mousePress(QPointF pos)
 void Button::mouseRelease()
 {
     if (pressed) {
-        if (buttonColor == Qt::gray && enabled)
+        if (buttonColor == Qt::gray && enabled) {
+            if (buttonName == primaryName) {
+                if (!waitForSomething)
+                    buttonName = altName;
+            } else if (buttonName == altName) {
+                buttonName = primaryName;
+            }
             emit clicked();
+        }
         buttonColor = Qt::white;
         pressed = false;
         update();
@@ -94,5 +106,26 @@ bool Button::getEnabled() const
 void Button::setEnabled(bool newEnabled)
 {
     enabled = newEnabled;
+    update();
+}
+
+void Button::setNameAlt()
+{
+    buttonName = altName;
+    update();
+}
+
+void Button::setNamePrimary()
+{
+    buttonName = primaryName;
+    update();
+}
+
+void Button::reset()
+{
+    buttonName = primaryName;
+    enabled = true;
+    pressed = false;
+    buttonColor = Qt::white;
     update();
 }

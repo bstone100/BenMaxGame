@@ -23,17 +23,16 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
 
     serverSize = 0;
 
-    fps = 0;
-
     mainTimer = new QTimer();
     QObject::connect(mainTimer, &QTimer::timeout, this, &Game::mainFunction);
     // calculations happen 100 times per second
     mainTimer->setInterval(10);
+//    mainTimer->setInterval(17);
 
     shotsTimer = new QTimer();
     QObject::connect(shotsTimer, &QTimer::timeout, this, &Game::shoot);
     shotsTimer->setInterval(50);
-//    shotsTimer->setInterval(250);
+//    shotsTimer->setInterval(1);
 
     delayTimer = new QTimer();
     delayTimer->setSingleShot(true);
@@ -43,65 +42,108 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     makeEnemyTimer = new QTimer();
     QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &Game::generateEnemy);
     makeEnemyTimer->setInterval(200);
-//    makeEnemyTimer->setInterval(1500);
+//    makeEnemyTimer->setInterval(3000);
 
     fpsTimer = new QTimer();
     QObject::connect(fpsTimer, &QTimer::timeout, this, &Game::setFps);
     fpsTimer->setInterval(100);
 
+    fpsStopwatch = new QElapsedTimer();
+
+
     fpsText = new QGraphicsTextItem("0");
     fpsText->setDefaultTextColor(Qt::white);
-    scene->addItem(fpsText);
+    fpsText->setFont(QFont("Menlo", scene->width() / 75, QFont::Bold));
+    fpsText->setPos(0, 0);
     fpsText->setZValue(1);
 
 
-    player = new Player(QUuid::createUuid());
-//    playerHealthBar = new HealthBar(player);
-//    playerHealthBar->setZValue(1);
+    QSettings settings("BenMax Productions", "BenMaxGame");
+    player = new Player(QUuid::createUuid(), settings.value("name").toString());
+    playerHealthBar = new HealthBar(player, HealthBar::Still);
+    playerHealthBar->setPos(scene->width() / 2 - playerHealthBar->getFullRect().width() / 2,
+                            scene->height() - playerHealthBar->getFullRect().height() * 2);
+    playerHealthBar->setZValue(1);
 
     background = QPixmap(":/images/space3.jpg");
 
     title = new QGraphicsTextItem("BenMaxGame");
     title->setDefaultTextColor(Qt::white);
+    title->setFont(QFont("Arial", scene->width() / 8, QFont::Bold));
+    title->setPos(scene->width() / 2 - title->boundingRect().width() / 2, scene->height() / 15);
     scene->addItem(title);
 
     scoreText = new QGraphicsTextItem(QString::number(player->getScore()));
     scoreText->setDefaultTextColor(Qt::white);
+    scoreText->setFont(QFont("Arial", scene->width() / 20, QFont::Bold));
+    QRectF scoreAdjust = scoreText->boundingRect();
+    scoreText->setPos(0, scene->height() - scoreAdjust.height());
     scene->addItem(scoreText);
     scoreText->setVisible(false);
     scoreText->setZValue(1);
 
-    QSettings settings("BenMax Productions", "BenMaxGame");
     highScore = 0;
     highScore = settings.value("highScore").toInt();
     highScoreText = new QGraphicsTextItem(QString::number(highScore));
     highScoreText->setDefaultTextColor(Qt::white);
+    highScoreText->setFont(QFont("Arial", scene->width() / 20, QFont::Bold));
+    QRectF highScoreAdjust = highScoreText->boundingRect();
+    highScoreText->setPos(scene->width() - highScoreAdjust.width(), scene->height() - highScoreAdjust.height());
     scene->addItem(highScoreText);
 
-    pauseButton = new Button("II");
+    pauseButton = new Button("II", ">");
     QObject::connect(pauseButton, &Button::clicked, this, &Game::gamePause);
-    pauseButton->setRect(0, 0, 100, 100);
+    pauseButton->setRect(0, 0, scene->width() / 20, scene->width() / 20);
+    QRectF pauseButtonAdjust = pauseButton->boundingRect();
+    pauseButton->setPos(scene->width() - pauseButtonAdjust.width(), scene->height() - pauseButtonAdjust.height());
     pauseButton->setFontDivisor(2);
     pauseButton->setZValue(1);
 //    pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPause));
 
-    startLocalGame = new Button("Play\nSolo");
+    changeNameButton = new Button("Change\nName", "Change\nName");
+    scene->addItem(changeNameButton);
+    QObject::connect(changeNameButton, &Button::clicked, this, &Game::changeName);
+    changeNameButton->setFontDivisor(5);
+
+    startLocalGame = new Button("Play", "Play");
     scene->addItem(startLocalGame);
     QObject::connect(startLocalGame, &Button::clicked, this, &Game::startSoloGame);
 
-    startPublicGame = new Button("Start\nPublic\nGame");
+    startPublicGame = new Button("Start\nServer", "Stop\nServer", true);
     scene->addItem(startPublicGame);
-    startPublicGame->setFontDivisor(6);
+    startPublicGame->setFontDivisor(5);
     QObject::connect(startPublicGame, &Button::clicked, this, &Game::toggleStartServer);
 
-    joinPublicGame = new Button("Join\nPublic\nGame");
+    joinPublicGame = new Button("Connect", "Disconnect", true);
     scene->addItem(joinPublicGame);
     joinPublicGame->setFontDivisor(6);
     QObject::connect(joinPublicGame, &Button::clicked, this, &Game::attemptConnection);
 
+
+    QPointF center(scene->sceneRect().center());
+
+    // center
+    startLocalGame->setRect(0, 0, scene->width() / 6, scene->height() / 6);
+    QPointF localGameAdjust(startLocalGame->rect().center());
+    startLocalGame->setPos(center - localGameAdjust);
+
+    // left of center
+    startPublicGame->setRect(0, 0, scene->width() / 7, scene->height() / 7);
+    QPointF publicGameAdjust(startPublicGame->rect().center());
+    startPublicGame->setPos(center - publicGameAdjust - QPointF(startLocalGame->rect().width() + 20, 0));
+
+    // right of center
+    joinPublicGame->setRect(0, 0, scene->width() / 7, scene->height() / 7);
+    QPointF joinPublicAdjust(joinPublicGame->rect().center());
+    joinPublicGame->setPos(center - joinPublicAdjust + QPointF(startLocalGame->rect().width() + 20, 0));
+
+    // sub center
+    changeNameButton->setRect(0, 0, scene->width() / 7, scene->height() / 7);
+    QPointF changeNameAdjust(changeNameButton->rect().center());
+    changeNameButton->setPos(center - changeNameAdjust + QPointF(0, startLocalGame->rect().height() + 20));
+
     server = new ChatServer();
     QObject::connect(server, &ChatServer::serverFull, this, &Game::sendServerFull);
-
 
     client = new ChatClient();
     QObject::connect(client, &ChatClient::error, this, &Game::error);
@@ -127,7 +169,13 @@ void Game::mainFunction()
     bulletImpact();
     enemyImpact();
 
-    fps++;
+    frameTimes.append(fpsStopwatch->restart());
+}
+
+void Game::drawBackground(QPainter *painter, const QRectF &rect)
+{
+    QGraphicsView::drawBackground(painter, rect);
+    painter->drawPixmap(scene()->sceneRect().toRect(), background);
 }
 
 void Game::keyPressEvent(QKeyEvent *event)
@@ -195,21 +243,23 @@ void Game::mouseDoubleClickEvent(QMouseEvent *event)
 
 void Game::mouseMoveEvent(QMouseEvent *event)
 {
+    QPointF point(mapToScene(event->pos()));
+
     if (!gameStarted) {
-        startPublicGame->mouseMove(event->position());
-        startLocalGame->mouseMove(event->position());
-        joinPublicGame->mouseMove(event->position());
+        startPublicGame->mouseMove(point);
+        startLocalGame->mouseMove(point);
+        joinPublicGame->mouseMove(point);
+        changeNameButton->mouseMove(point);
         return;
     }
 
-    pauseButton->mouseMove(event->position());
+    pauseButton->mouseMove(point);
 
     if (gamePaused || pauseButton->getPressed()) return;
 
     if (player->getDead()) return;
 
-    mouseTip.setX(event->position().x());
-    mouseTip.setY(event->position().y());
+    mouseTip = point;
 
     moveGun();
 
@@ -219,14 +269,17 @@ void Game::mouseMoveEvent(QMouseEvent *event)
 
 void Game::mousePressEvent(QMouseEvent *event)
 {
+    QPointF point(mapToScene(event->pos()));
+
     if (!gameStarted) {
-        startPublicGame->mousePress(event->position());
-        startLocalGame->mousePress(event->position());
-        joinPublicGame->mousePress(event->position());
+        startPublicGame->mousePress(point);
+        startLocalGame->mousePress(point);
+        joinPublicGame->mousePress(point);
+        changeNameButton->mousePress(point);
         return;
     }
 
-    pauseButton->mousePress(event->position());
+    pauseButton->mousePress(point);
 
     if (gamePaused || pauseButton->getPressed()) return;
 
@@ -244,6 +297,7 @@ void Game::mouseReleaseEvent(QMouseEvent *event)
         startPublicGame->mouseRelease();
         startLocalGame->mouseRelease();
         joinPublicGame->mouseRelease();
+        changeNameButton->mouseRelease();
         return;
     }
 
@@ -259,53 +313,42 @@ void Game::mouseReleaseEvent(QMouseEvent *event)
     delayTimer->stop();
 }
 
-// maybe text and background should fit to scale but game items should be adjusted
-// maybe position of game items should be adjusted but they should keep their size
-void Game::resizeEvent(QResizeEvent *event)
+void Game::resizeEvent(QResizeEvent *)
 {
-    QRectF newSceneRect(0, 0, width(), height());
-    scene()->setSceneRect(newSceneRect);
-    scene()->setBackgroundBrush(QBrush(background.scaled(width(), height())));
+    fitInView(scene()->sceneRect(), Qt::KeepAspectRatio);
+}
 
-    setScene();
+// same function, but without margin
+void Game::fitInView(const QRectF &rect, Qt::AspectRatioMode aspectRatioMode)
+{
+    if (!scene() || rect.isNull())
+            return;
+    auto unity = transform().mapRect(QRectF(0, 0, 1, 1));
+    if (unity.isEmpty())
+        return;
+    scale(1/unity.width(), 1/unity.height());
+    auto viewRect = viewport()->rect();
+    if (viewRect.isEmpty())
+        return;
+    auto sceneRect = transform().mapRect(rect);
+    if (sceneRect.isEmpty())
+        return;
+    qreal xratio = viewRect.width() / sceneRect.width();
+    qreal yratio = viewRect.height() / sceneRect.height();
 
-    title->setFont(QFont("Arial", width() / 8, QFont::Bold));
-    title->setPos(width() / 2 - title->boundingRect().width() / 2, 30);
-
-    scoreText->setFont(QFont("Arial", width() / 20, QFont::Bold));
-    QRectF scoreAdjust = scoreText->boundingRect();
-    scoreText->setPos(0, height() - scoreAdjust.height());
-
-    highScoreText->setFont(QFont("Arial", width() / 20, QFont::Bold));
-    QRectF highScoreAdjust = highScoreText->boundingRect();
-    highScoreText->setPos(width() - highScoreAdjust.width(), height() - highScoreAdjust.height());
-
-    fpsText->setFont(QFont("Arial", width() / 50, QFont::Bold));
-    fpsText->setPos(0, 0);
-
-    pauseButton->setRect(0, 0, width() / 20, width() / 20);
-    QRectF pauseButtonAdjust = pauseButton->boundingRect();
-    pauseButton->setPos(width() - pauseButtonAdjust.width(), height() - pauseButtonAdjust.height());
-
-    QPointF center(newSceneRect.center());
-
-    // center
-    startPublicGame->setRect(0, 0, width() / 7, height() / 7);
-    QPointF publicGameAdjust(startPublicGame->rect().center());
-    startPublicGame->setPos(center - publicGameAdjust);
-
-    // left of center
-    startLocalGame->setRect(0, 0, width() / 7, height() / 7);
-    QPointF localGameAdjust(startLocalGame->rect().center());
-    startLocalGame->setPos(center - localGameAdjust - QPointF(startPublicGame->rect().width() + 20, 0));
-
-    // right of center
-    joinPublicGame->setRect(0, 0, width() / 7, height() / 7);
-    QPointF joinPublicAdjust(joinPublicGame->rect().center());
-    joinPublicGame->setPos(center - joinPublicAdjust + QPointF(startPublicGame->rect().width() + 20, 0));
-
-
-    QGraphicsView::resizeEvent(event);
+    // Respect the aspect ratio mode.
+    switch (aspectRatioMode) {
+    case Qt::KeepAspectRatio:
+        xratio = yratio = qMin(xratio, yratio);
+        break;
+    case Qt::KeepAspectRatioByExpanding:
+        xratio = yratio = qMax(xratio, yratio);
+        break;
+    case Qt::IgnoreAspectRatio:
+        break;
+    }
+    scale(xratio, yratio);
+    centerOn(rect.center());
 }
 
 void Game::shoot()
@@ -437,7 +480,6 @@ void Game::enemyImpact()
                     }
                 }
             }
-//            playerHealthBar->update();
             enemies.remove(i);
             i--;
             enemy->startExplosion();
@@ -462,12 +504,12 @@ void Game::enemyImpact()
 
 void Game::moveGun()
 {
-    playerCenter.setX(player->x() + (player->getSize() / 2));
-    playerCenter.setY(player->y() + (player->getSize() / 2));
+    playerCenter = player->pos() + QPointF(player->getSize() / 2, player->getSize() / 2);
 
     QLineF mouseLine(playerCenter, mouseTip);
 
     player->setMouseAngle(mouseLine.angle());
+    // 60 refers to pixels away from player center
     gunTip = mouseLine.pointAt(60 / mouseLine.length());
 
     player->getGun()->rotate(player->getMouseAngle());
@@ -475,19 +517,18 @@ void Game::moveGun()
 
 void Game::setScene()
 {
-    QRectF newSceneRect(0, 0, width(), height());
-    QPointF center(newSceneRect.center());
+    QPointF center(scene()->sceneRect().center());
 
     if (mode == Game::Solo) {
         QPointF playerAdjust(player->getSize() / 2, player->getSize() / 2);
         player->setPos(center - playerAdjust);
     } else if (mode == Game::Multiplayer) {
-        QPointF newPos(QRandomGenerator::system()->bounded(scene()->width() - player->getSize()), center.y() - player->getSize() / 2);
+        QPointF newPos(QRandomGenerator::system()->bounded(scene()->width() - player->getSize()),
+                       center.y() - player->getSize() / 2);
         player->setPos(newPos);
     }
 
-//    playerHealthBar->setPos(newSceneRect.width() / 2 - 100, newSceneRect.height() - 50);
-    mouseTip = QPointF(width() / 2, 0);
+    mouseTip = QPointF(scene()->width() / 2, 0);
 }
 
 void Game::gameStart()
@@ -504,21 +545,24 @@ void Game::gameStart()
     scene()->removeItem(startLocalGame);
     scene()->removeItem(startPublicGame);
     scene()->removeItem(joinPublicGame);
+    scene()->removeItem(changeNameButton);
 
+    scene()->addItem(fpsText);
     scene()->addItem(player);
-
 
     if (mode == Game::Multiplayer) {
         foreach (Player *otherPlayer, otherPlayersMap) {
             scene()->addItem(otherPlayer);
         }
         pauseButton->setEnabled(false);
-        pauseButton->setVisible(false);
+//        pauseButton->setVisible(false);
+    }
+    if (mode == Game::Solo) {
+        scene()->addItem(pauseButton);
+        pauseButton->setEnabled(true);
     }
 
-//    scene()->addItem(playerHealthBar);
-
-    scene()->addItem(pauseButton);
+    scene()->addItem(playerHealthBar);
     scoreText->setVisible(true);
 
     gameStarted = true;
@@ -532,6 +576,8 @@ void Game::gameEnd()
 {
     gameStarted = false;
     gamePaused = false;
+
+    serverSize = 0;
 
     qDeleteAll(enemies);
     enemies.clear();
@@ -557,35 +603,29 @@ void Game::gameEnd()
     if (mode == Game::Multiplayer) {
         qDeleteAll(otherPlayersMap);
         otherPlayersMap.clear();
-
-        serverSize = 0;
-
-        startPublicGame->setButtonName("Start\nPublic\nGame");
-        joinPublicGame->setButtonName("Join\nPublic\nGame");
-
-        startLocalGame->setEnabled(true);
-        startPublicGame->setEnabled(true);
-        joinPublicGame->setEnabled(true);
-
-        pauseButton->setEnabled(true);
-        pauseButton->setVisible(true);
+    }
+    if (mode == Game::Solo) {
+        scene()->removeItem(pauseButton);
     }
 
-//    scene()->removeItem(playerHealthBar);
+    pauseButton->reset();
+    startLocalGame->reset();
+    startPublicGame->reset();
+    joinPublicGame->reset();
 
-    scene()->removeItem(pauseButton);
+    scene()->removeItem(playerHealthBar);
+    scene()->removeItem(fpsText);
 
     scene()->addItem(title);
     scene()->addItem(highScoreText);
     scene()->addItem(startLocalGame);
     scene()->addItem(startPublicGame);
     scene()->addItem(joinPublicGame);
-
-
+    scene()->addItem(changeNameButton);
 
     mainTimer->stop();
     fpsTimer->stop();
-    fps = 0;
+    frameTimes.clear();
     shotsTimer->stop();
     delayTimer->stop();
     makeEnemyTimer->stop();
@@ -596,7 +636,7 @@ void Game::gameEnd()
         settings.setValue("highScore", highScore);
         highScoreText->setPlainText(QString::number(highScore));
         QRectF highScoreAdjust = highScoreText->boundingRect();
-        highScoreText->setPos(width() - highScoreAdjust.width(), height() - highScoreAdjust.height());
+        highScoreText->setPos(scene()->width() - highScoreAdjust.width(), scene()->height() - highScoreAdjust.height());
     }
 }
 
@@ -606,18 +646,14 @@ void Game::gamePause()
     if (gamePaused) {
         mainTimer->stop();
         fpsTimer->stop();
-        fps = 0;
+        frameTimes.clear();
         shotsTimer->stop();
         delayTimer->stop();
         makeEnemyTimer->stop();
-        pauseButton->setButtonName(">");
-//        pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPlay));
     } else {
         mainTimer->start();
         fpsTimer->start();
         makeEnemyTimer->start();
-        pauseButton->setButtonName("II");
-//        pauseButton->setIcon(style()->standardPixmap(QStyle::SP_MediaPause));
     }
 }
 
@@ -633,9 +669,12 @@ void Game::setScore(int newScore)
 
 void Game::setFps()
 {
-    float scale = 1000 / (float)(fpsTimer->interval());
-    fpsText->setPlainText(QString::number((int)((float)fps * scale)));
-    fps = 0;
+    float averageTime = 0;
+    for (auto time: frameTimes)
+        averageTime += time;
+    averageTime /= frameTimes.size();
+    fpsText->setPlainText(QString::number((int)(1000 / averageTime)));
+    frameTimes.clear();
 }
 
 void Game::toggleStartServer()
@@ -650,12 +689,13 @@ void Game::toggleStartServer()
         int players = QInputDialog::getInt(this, "Server Size", "Players:", 2, 2, 10, 1, &success);
         if (success) {
             server->setServerSize(players);
+            startPublicGame->setNameAlt();
         } else {
             server->stopServer();
+            startPublicGame->reset();
             return;
         }
 
-        startPublicGame->setButtonName("Stop\nPublic\nGame");
         startLocalGame->setEnabled(false);
         joinPublicGame->setEnabled(false);
 
@@ -665,8 +705,6 @@ void Game::toggleStartServer()
 
     } else {
         server->stopServer();
-
-        startPublicGame->setButtonName("Start\nPublic\nGame");
         startLocalGame->setEnabled(true);
         joinPublicGame->setEnabled(true);
     }
@@ -686,10 +724,8 @@ void Game::attemptConnection()
         if (hostAddress.isEmpty())
             return; // the user pressed cancel or typed nothing
 
-        // tell the client to connect to the host using the port 1967
-
         status = Game::Guest;
-
+        // tell the client to connect to the host using the port 1967
         client->connectToServer(QHostAddress(hostAddress), 1967);
 
     } else {
@@ -700,24 +736,43 @@ void Game::attemptConnection()
 void Game::connectedToServer()
 {
     if (status == Game::Guest) {
-        joinPublicGame->setButtonName("Exit\nPublic\nGame");
+        joinPublicGame->setNameAlt();
         startLocalGame->setEnabled(false);
         startPublicGame->setEnabled(false);
     }
 }
 
+// need to handle case of people leaving during game
 void Game::disconnectedFromServer()
 {
     // if the client loses connection to the server
     // comunicate the event to the user via a message box
 //    QMessageBox::warning(this, tr("Disconnected"), tr("The host terminated the connection"));
 
-    joinPublicGame->setButtonName("Join\nPublic\nGame");
+    joinPublicGame->reset();
     startLocalGame->setEnabled(true);
     startPublicGame->setEnabled(true);
 
     if (gameStarted)
         gameEnd();
+}
+
+void Game::changeName()
+{
+//    QLineEdit *lineEdit = inputDialog->findChild<QLineEdit*>();
+    bool success;
+    const QString newName = QInputDialog::getText(
+        this
+        , tr("Choose Name")
+        , tr("Enter Name:")
+        , QLineEdit::Normal
+        , player->getName()
+        , &success
+    );
+    if (!success) return;
+    player->setName(newName);
+    QSettings settings("BenMax Productions", "BenMaxGame");
+    settings.setValue("name", newName);
 }
 
 void Game::error(QAbstractSocket::SocketError socketError)
@@ -796,6 +851,7 @@ void Game::sendNewPlayerData()
 
     Data data(Data::NewPlayer);
     data.setPlayerId(player->getId());
+    data.setPlayerName(player->getName());
     clientStream << data;
 }
 
@@ -885,8 +941,9 @@ void Game::receiveData(Data data)
     }
     case Data::NewPlayer: {
         QUuid id = data.getPlayerId();
+        QString name = data.getPlayerName();
         if (!otherPlayersMap.contains(id) && player->getId() != id) {
-            Player *player = new Player(id);
+            Player *player = new Player(id, name);
             otherPlayersMap[id] = player;
         }
         if (serverSize == otherPlayersMap.size() + 1) {

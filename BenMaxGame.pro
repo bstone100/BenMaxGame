@@ -21,6 +21,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     player.cpp \
+    playerinfo.cpp \
     serverworker.cpp
 
 HEADERS += \
@@ -35,6 +36,7 @@ HEADERS += \
     healthbar.h \
     mainwindow.h \
     player.h \
+    playerinfo.h \
     serverworker.h
 
 # Default rules for deployment.

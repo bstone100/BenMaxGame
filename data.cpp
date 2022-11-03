@@ -26,6 +26,7 @@ QDataStream &operator<<(QDataStream &ds, const Data &data)
         break;
     case Data::NewPlayer:
         ds << data.playerId;
+        ds << data.playerName;
         break;
     case Data::NewBullet:
         ds << data.bulletGunTip;
@@ -58,6 +59,7 @@ QDataStream &operator>>(QDataStream &ds, Data &data)
         break;
     case Data::NewPlayer:
         ds >> data.playerId;
+        ds >> data.playerName;
         break;
     case Data::NewBullet:
         ds >> data.bulletGunTip;
@@ -206,4 +208,14 @@ int Data::getServerSize() const
 void Data::setServerSize(int newServerSize)
 {
     serverSize = newServerSize;
+}
+
+const QString &Data::getPlayerName() const
+{
+    return playerName;
+}
+
+void Data::setPlayerName(const QString &newPlayerName)
+{
+    playerName = newPlayerName;
 }

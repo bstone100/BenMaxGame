@@ -67,6 +67,9 @@ public:
     int getServerSize() const;
     void setServerSize(int newServerSize);
 
+    const QString &getPlayerName() const;
+    void setPlayerName(const QString &newPlayerName);
+
 private:
     DataType type;
 
@@ -75,6 +78,7 @@ private:
 
     // player
     QUuid playerId;
+    QString playerName;
     QPointF playerPos;
     qreal playerMouseAngle;
     int playerHealth;

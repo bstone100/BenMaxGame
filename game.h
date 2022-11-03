@@ -28,6 +28,8 @@ public:
 
     void mainFunction();
 
+    void drawBackground(QPainter *painter, const QRectF &rect) override;
+
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
 
@@ -36,7 +38,8 @@ public:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
 
-    void resizeEvent(QResizeEvent *event) override;
+    void resizeEvent(QResizeEvent *) override;
+    void fitInView(const QRectF &rect, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio);
 
     void shoot();
     void startFullAuto();
@@ -72,20 +75,21 @@ public:
 
     void connectedToServer();
     void disconnectedFromServer();
+
+    void changeName();
+
 private:
     GameMode mode;
     Status status;
 
     int serverSize;
 
-    int fps;
-
     bool upHeld, downHeld, leftHeld, rightHeld;
 
     QPointF mouseTip, playerCenter, gunTip;
 
     Player *player;
-//    HealthBar *playerHealthBar;
+    HealthBar *playerHealthBar;
 
 
     QVector<Bullet *> bullets;
@@ -103,6 +107,8 @@ private:
     QTimer *makeEnemyTimer;
     QTimer *bulletImpactTimer;
     QTimer *fpsTimer;
+    QElapsedTimer *fpsStopwatch;
+    QVector<int> frameTimes;
 
     QThread *bulletThread;
     QThread *enemyThread;
@@ -136,6 +142,8 @@ private:
     // attempts to join active server
     // connect to joinLobby()
     Button *joinPublicGame;
+
+    Button *changeNameButton;
 
     // will be used if this computer is host
     ChatServer *server;

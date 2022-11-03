@@ -4,13 +4,14 @@
 #include "QtCore/quuid.h"
 #include "gun.h"
 #include "healthbar.h"
+#include "playerinfo.h"
 #include <QGraphicsRectItem>
 
 class Player : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
 public:
-    Player(QUuid id);
+    Player(QUuid id, QString name = "Ben");
 
     bool getUp() const;
     void setUp(bool newUp);
@@ -69,15 +70,16 @@ private:
     Gun *gun;
     int health, startHealth;
     HealthBar *healthBar;
+    PlayerInfo *playerInfo;
     int score;
     qreal mouseAngle;
-    QString name;
     QPointF tempPos;
 
     bool dead;
     qreal scale;
 
     QUuid id;
+    QString name;
 };
 
 #endif // PLAYER_H

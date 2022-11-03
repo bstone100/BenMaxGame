@@ -1,3 +1,4 @@
+#include "QtCore/qsettings.h"
 #include "QtCore/qtimer.h"
 #include "QtGui/qpainter.h"
 #include "QtWidgets/qgraphicsview.h"
@@ -10,6 +11,7 @@
 #include "QScreen"
 #include "QPushButton"
 #include "QStyle"
+#include "QLayout"
 
 #include <QApplication>
 
@@ -19,12 +21,15 @@ int main(int argc, char *argv[])
 
     MainWindow *w = new MainWindow();
     w->setMaximumSize(QGuiApplication::primaryScreen()->size());
-//    w->setMinimumSize(900, 600);
-    w->setMinimumSize(500, 500);
+    w->setMinimumSize(QGuiApplication::primaryScreen()->size() / 2);
     w->setWindowTitle("BenMaxGame");
 
     QGraphicsScene scene;
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
+    // multiplayer games need to be same size in terms of pixels
+    scene.setSceneRect(0, 0, 1440, 900);
+//    scene.setSceneRect(0, 0, 2560, 1440);
+    scene.setBackgroundBrush(Qt::black);
 
     Game view(&scene);
     view.setMouseTracking(true);
