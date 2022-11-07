@@ -1,6 +1,8 @@
 #include "button.h"
 #include "QtGui/qpainter.h"
 #include "QGraphicsSceneMouseEvent"
+#include "QtWidgets/qapplication.h"
+#include <QCursor>
 
 QColor textColor(45, 33 ,90);
 
@@ -38,16 +40,22 @@ void Button::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget 
 
 }
 
-void Button::mouseMove(QPointF pos)
+bool Button::mouseMove(QPointF pos)
 {
-    if (pressed) {
-        if (boundingRegion(sceneTransform()).contains(pos.toPoint())) {
+    bool contains = boundingRegion(sceneTransform()).contains(pos.toPoint());
+
+    if (contains) {
+        if (pressed) {
             buttonColor = Qt::gray;
         } else {
-            buttonColor = Qt::white;
+            buttonColor = Qt::lightGray;
         }
-        update();
+    } else {
+        buttonColor = Qt::white;
     }
+    update();
+
+    return contains;
 }
 
 void Button::mousePress(QPointF pos)

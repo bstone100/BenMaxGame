@@ -11,7 +11,7 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
-    void mouseMove(QPointF pos);
+    bool mouseMove(QPointF pos);
     void mousePress(QPointF pos);
     void mouseRelease();
 

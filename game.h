@@ -43,6 +43,8 @@ public:
 
     void shoot();
     void startFullAuto();
+    void startHealthRegen();
+    void healthRegen();
     void cleanUpScene();
     void generateEnemy();
     void bulletImpact();
@@ -56,6 +58,7 @@ public:
 
     void setScore(int newScore);
     void setFps();
+    void resetHS();
 
     void startSoloGame();
     void startServerGame();
@@ -106,6 +109,9 @@ private:
     QTimer *cleanUpTimer;
     QTimer *makeEnemyTimer;
     QTimer *bulletImpactTimer;
+    QTimer *regenDelayTimer;
+    QTimer *regenTimer;
+
     QTimer *fpsTimer;
     QElapsedTimer *fpsStopwatch;
     QVector<int> frameTimes;
@@ -133,17 +139,11 @@ private:
 
     Button *pauseButton;
 
-    // local solo game
-    // connect to gameStart()
     Button *startLocalGame;
-    // initializes server and waits for players to join
-    // connect to makeLobby()
     Button *startPublicGame;
-    // attempts to join active server
-    // connect to joinLobby()
     Button *joinPublicGame;
-
     Button *changeNameButton;
+    QVector<Button *> buttons;
 
     // will be used if this computer is host
     ChatServer *server;

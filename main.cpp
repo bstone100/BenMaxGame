@@ -28,7 +28,6 @@ int main(int argc, char *argv[])
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
     // multiplayer games need to be same size in terms of pixels
     scene.setSceneRect(0, 0, 1440, 900);
-//    scene.setSceneRect(0, 0, 2560, 1440);
     scene.setBackgroundBrush(Qt::black);
 
     Game view(&scene);
@@ -46,6 +45,10 @@ int main(int argc, char *argv[])
     QAction *startAction = new QAction("Start Game", fileMenu);
     QObject::connect(startAction, &QAction::triggered, &view, &Game::startSoloGame);
     fileMenu->addAction(startAction);
+
+    QAction *resetHighScoreAction = new QAction("Reset High Score", fileMenu);
+    QObject::connect(resetHighScoreAction, &QAction::triggered, &view, &Game::resetHS);
+    fileMenu->addAction(resetHighScoreAction);
 
     QAction *minimizeAction = new QAction("Minimize Window", fileMenu);
     minimizeAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_M));

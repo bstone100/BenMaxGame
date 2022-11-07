@@ -6,6 +6,7 @@
 #include "QtCore/qtimer.h"
 #include "QtGui/qevent.h"
 #include "QtNetwork/qtcpsocket.h"
+#include "QtWidgets/qapplication.h"
 #include "QtWidgets/qstyle.h"
 #include "healthbar.h"
 #include <QMessageBox>
@@ -56,6 +57,15 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     fpsText->setFont(QFont("Menlo", scene->width() / 75, QFont::Bold));
     fpsText->setPos(0, 0);
     fpsText->setZValue(1);
+
+    regenDelayTimer = new QTimer();
+    regenDelayTimer->setSingleShot(true);
+    QObject::connect(regenDelayTimer, &QTimer::timeout, this, &Game::startHealthRegen);
+    regenDelayTimer->setInterval(2000);
+
+    regenTimer = new QTimer();
+    QObject::connect(regenTimer, &QTimer::timeout, this, &Game::healthRegen);
+    regenTimer->setInterval(5);
 
 
     QSettings settings("BenMax Productions", "BenMaxGame");
@@ -118,6 +128,8 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     scene->addItem(joinPublicGame);
     joinPublicGame->setFontDivisor(6);
     QObject::connect(joinPublicGame, &Button::clicked, this, &Game::attemptConnection);
+
+    buttons = QVector<Button *>{startLocalGame, startPublicGame, joinPublicGame, changeNameButton};
 
 
     QPointF center(scene->sceneRect().center());
@@ -246,14 +258,20 @@ void Game::mouseMoveEvent(QMouseEvent *event)
     QPointF point(mapToScene(event->pos()));
 
     if (!gameStarted) {
-        startPublicGame->mouseMove(point);
-        startLocalGame->mouseMove(point);
-        joinPublicGame->mouseMove(point);
-        changeNameButton->mouseMove(point);
+        for (auto button: buttons) {
+            if (button->mouseMove(point)) {
+                setCursor(QCursor(Qt::PointingHandCursor));
+                return;
+            }
+        }
+        setCursor(QCursor(Qt::ArrowCursor));
         return;
     }
 
-    pauseButton->mouseMove(point);
+    if (pauseButton->mouseMove(point))
+        setCursor(QCursor(Qt::PointingHandCursor));
+    else
+        setCursor(QCursor(Qt::ArrowCursor));
 
     if (gamePaused || pauseButton->getPressed()) return;
 
@@ -370,6 +388,20 @@ void Game::startFullAuto()
     shotsTimer->start();
 }
 
+void Game::startHealthRegen()
+{
+    regenTimer->start();
+}
+
+void Game::healthRegen()
+{
+    if (!player->getDead() && player->getHealth() < player->getStartHealth()) {
+        player->setHealth(player->getHealth() + 1);
+        playerHealthBar->update();
+        player->update();
+    }
+}
+
 void Game::cleanUpScene()
 {
     int size = 150;
@@ -448,6 +480,8 @@ void Game::enemyImpact()
         QRectF enemyRect(enemy->sceneBoundingRect());
         if (!player->getDead() && enemyRect.intersects(playerRect)) {
             enemy->setHealth(0);
+            regenTimer->stop();
+            regenDelayTimer->start();
             player->setHealth(player->getHealth() - enemy->getDamage());
             setScore(player->getScore() + enemy->getStartHealth());
             if (player->getHealth() <= 0) {
@@ -458,6 +492,8 @@ void Game::enemyImpact()
                     makeEnemyTimer->stop();
                     delayTimer->stop();
                     shotsTimer->stop();
+                    regenDelayTimer->stop();
+                    regenTimer->stop();
                     sendPlayerData();
                     if (status == Game::Host) {
                         bool allDead = true;
@@ -540,6 +576,8 @@ void Game::gameStart()
     player->resetProperties();
     setScene();
 
+    setCursor(QCursor(Qt::ArrowCursor));
+
     scene()->removeItem(title);
     scene()->removeItem(highScoreText);
     scene()->removeItem(startLocalGame);
@@ -555,7 +593,6 @@ void Game::gameStart()
             scene()->addItem(otherPlayer);
         }
         pauseButton->setEnabled(false);
-//        pauseButton->setVisible(false);
     }
     if (mode == Game::Solo) {
         scene()->addItem(pauseButton);
@@ -629,6 +666,8 @@ void Game::gameEnd()
     shotsTimer->stop();
     delayTimer->stop();
     makeEnemyTimer->stop();
+    regenTimer->stop();
+    regenDelayTimer->stop();
 
     if (player->getScore() > highScore) {
         highScore = player->getScore();
@@ -650,6 +689,8 @@ void Game::gamePause()
         shotsTimer->stop();
         delayTimer->stop();
         makeEnemyTimer->stop();
+        regenTimer->stop();
+        regenDelayTimer->stop();
     } else {
         mainTimer->start();
         fpsTimer->start();
@@ -675,6 +716,11 @@ void Game::setFps()
     averageTime /= frameTimes.size();
     fpsText->setPlainText(QString::number((int)(1000 / averageTime)));
     frameTimes.clear();
+}
+
+void Game::resetHS()
+{
+    highScore = 0;
 }
 
 void Game::toggleStartServer()

@@ -27,6 +27,8 @@ private:
     Enemy *enemy;
     Player *player;
 
+    Type t;
+
     QRectF fullRect;
     QRectF healthRect;
 };

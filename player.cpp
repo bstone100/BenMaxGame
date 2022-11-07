@@ -149,6 +149,7 @@ int Player::getHealth() const
 void Player::setHealth(int newHealth)
 {
     health = newHealth;
+
 }
 
 Gun *Player::getGun() const
