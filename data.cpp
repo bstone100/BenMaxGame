@@ -17,12 +17,19 @@ QDataStream &operator<<(QDataStream &ds, const Data &data)
 {
     ds << data.type;
     switch (data.type) {
-    case Data::PlayerMove:
+    case Data::PlayerData:
         ds << data.playerId;
         ds << data.playerPos;
         ds << data.playerMouseAngle;
         ds << data.playerHealth;
         ds << data.playerScore;
+        break;
+    case Data::PlayerDirection:
+        ds << data.playerId;
+        ds << data.left;
+        ds << data.right;
+        ds << data.up;
+        ds << data.down;
         break;
     case Data::NewPlayer:
         ds << data.playerId;
@@ -50,12 +57,19 @@ QDataStream &operator>>(QDataStream &ds, Data &data)
 {
     ds >> data.type;
     switch (data.type) {
-    case Data::PlayerMove:
+    case Data::PlayerData:
         ds >> data.playerId;
         ds >> data.playerPos;
         ds >> data.playerMouseAngle;
         ds >> data.playerHealth;
         ds >> data.playerScore;
+        break;
+    case Data::PlayerDirection:
+        ds >> data.playerId;
+        ds >> data.left;
+        ds >> data.right;
+        ds >> data.up;
+        ds >> data.down;
         break;
     case Data::NewPlayer:
         ds >> data.playerId;
@@ -218,4 +232,44 @@ const QString &Data::getPlayerName() const
 void Data::setPlayerName(const QString &newPlayerName)
 {
     playerName = newPlayerName;
+}
+
+bool Data::getLeft() const
+{
+    return left;
+}
+
+void Data::setLeft(bool newLeft)
+{
+    left = newLeft;
+}
+
+bool Data::getRight() const
+{
+    return right;
+}
+
+void Data::setRight(bool newRight)
+{
+    right = newRight;
+}
+
+bool Data::getDown() const
+{
+    return down;
+}
+
+void Data::setDown(bool newDown)
+{
+    down = newDown;
+}
+
+bool Data::getUp() const
+{
+    return up;
+}
+
+void Data::setUp(bool newUp)
+{
+    up = newUp;
 }

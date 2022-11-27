@@ -58,13 +58,17 @@ bool Button::mouseMove(QPointF pos)
     return contains;
 }
 
-void Button::mousePress(QPointF pos)
+bool Button::mousePress(QPointF pos)
 {
-    if (boundingRegion(sceneTransform()).contains(pos.toPoint())) {
+    bool contains = boundingRegion(sceneTransform()).contains(pos.toPoint());
+
+    if (contains) {
         buttonColor = Qt::gray;
         pressed = true;
         update();
     }
+
+    return contains;
 }
 
 void Button::mouseRelease()

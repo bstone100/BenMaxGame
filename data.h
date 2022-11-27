@@ -12,7 +12,8 @@ class Data
 {
 public:
     enum DataType {
-        PlayerMove,
+        PlayerData,
+        PlayerDirection,
         NewPlayer,
         NewBullet,
         NewEnemy,
@@ -70,6 +71,18 @@ public:
     const QString &getPlayerName() const;
     void setPlayerName(const QString &newPlayerName);
 
+    bool getLeft() const;
+    void setLeft(bool newLeft);
+
+    bool getRight() const;
+    void setRight(bool newRight);
+
+    bool getDown() const;
+    void setDown(bool newDown);
+
+    bool getUp() const;
+    void setUp(bool newUp);
+
 private:
     DataType type;
 
@@ -83,6 +96,7 @@ private:
     qreal playerMouseAngle;
     int playerHealth;
     int playerScore;
+    bool left, right, up, down;
 
 
     // bullet

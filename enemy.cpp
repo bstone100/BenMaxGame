@@ -26,6 +26,12 @@ Enemy::Enemy(QPointF startPoint, QPointF playerCenter, int velo, int size)
 
     healthBar = new HealthBar(this);
 
+    regenDelayTimer = new Timer(this, 500, true);
+    QObject::connect(regenDelayTimer, &QTimer::timeout, this, &Enemy::startHealthRegen);
+
+    regenTimer = new Timer(this, 10);
+    QObject::connect(regenTimer, &QTimer::timeout, this, &Enemy::healthRegen);
+
     dead = false;
     scale = 1;
 }
@@ -49,6 +55,37 @@ void Enemy::advance(int step)
 bool Enemy::getDead() const
 {
     return dead;
+}
+
+void Enemy::startHealthRegen()
+{
+    regenTimer->start();
+}
+
+void Enemy::healthRegen()
+{
+    if (!dead && health < startHealth) {
+        health++;
+        update();
+    }
+}
+
+void Enemy::activateRegen()
+{
+    regenTimer->stop();
+    regenDelayTimer->start();
+}
+
+void Enemy::pause()
+{
+    regenTimer->pause();
+    regenDelayTimer->pause();
+}
+
+void Enemy::resume()
+{
+    regenTimer->resume();
+    regenDelayTimer->resume();
 }
 
 qreal Enemy::getAngle() const

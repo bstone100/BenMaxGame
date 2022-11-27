@@ -23,7 +23,8 @@ SOURCES += \
     mainwindow.cpp \
     player.cpp \
     playerinfo.cpp \
-    serverworker.cpp
+    serverworker.cpp \
+    timer.cpp
 
 HEADERS += \
     bullet.h \
@@ -38,7 +39,8 @@ HEADERS += \
     mainwindow.h \
     player.h \
     playerinfo.h \
-    serverworker.h
+    serverworker.h \
+    timer.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

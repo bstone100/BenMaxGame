@@ -7,6 +7,7 @@
 #include "enemy.h"
 #include "player.h"
 #include "bullet.h"
+#include "timer.h"
 #include <QGraphicsView>
 #include <QElapsedTimer>
 
@@ -29,6 +30,7 @@ public:
     void mainFunction();
 
     void drawBackground(QPainter *painter, const QRectF &rect) override;
+    void drawForeground(QPainter *painter, const QRectF &) override;
 
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
@@ -50,6 +52,7 @@ public:
     void bulletImpact();
     void enemyImpact();
     void moveGun();
+    void nuke();
 
     void setScene();
     void gameStart();
@@ -68,6 +71,7 @@ public:
     void error(QAbstractSocket::SocketError socketError);
 
     void sendPlayerData();
+    void sendPlayerDirection();
     void sendNewPlayerData();
     void sendNewBulletData(QPointF gunTip, qreal angle);
     void sendNewEnemyData(QPointF startPoint, QPointF playerCenter, int velo, int size);
@@ -103,16 +107,16 @@ private:
 
     QMap<QUuid, Player *> otherPlayersMap;
 
-    QTimer *mainTimer;
-    QTimer *shotsTimer;
-    QTimer *delayTimer;
-    QTimer *cleanUpTimer;
-    QTimer *makeEnemyTimer;
-    QTimer *bulletImpactTimer;
-    QTimer *regenDelayTimer;
-    QTimer *regenTimer;
+    Timer *mainTimer;
+    Timer *shotsTimer;
+    Timer *delayTimer;
+    Timer *cleanUpTimer;
+    Timer *makeEnemyTimer;
+    Timer *bulletImpactTimer;
+    Timer *regenDelayTimer;
+    Timer *regenTimer;
 
-    QTimer *fpsTimer;
+    Timer *fpsTimer;
     QElapsedTimer *fpsStopwatch;
     QVector<int> frameTimes;
 
@@ -136,6 +140,8 @@ private:
 
     bool gameStarted;
     bool gamePaused;
+    bool justResumed;
+    bool autoFire;
 
     Button *pauseButton;
 

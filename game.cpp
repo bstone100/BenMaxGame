@@ -21,51 +21,41 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
 {
     gameStarted = false;
     gamePaused = false;
+    justResumed = false;
+    autoFire = false;
 
     serverSize = 0;
 
-    mainTimer = new QTimer();
+    mainTimer = new Timer(this, 10);
     QObject::connect(mainTimer, &QTimer::timeout, this, &Game::mainFunction);
     // calculations happen 100 times per second
-    mainTimer->setInterval(10);
-//    mainTimer->setInterval(17);
 
-    shotsTimer = new QTimer();
+    shotsTimer = new Timer(this, 50);
     QObject::connect(shotsTimer, &QTimer::timeout, this, &Game::shoot);
-    shotsTimer->setInterval(50);
-//    shotsTimer->setInterval(1);
 
-    delayTimer = new QTimer();
-    delayTimer->setSingleShot(true);
+    delayTimer = new Timer(this, 250, true);
     QObject::connect(delayTimer, &QTimer::timeout, this, &Game::startFullAuto);
-    delayTimer->setInterval(250);
 
-    makeEnemyTimer = new QTimer();
+    makeEnemyTimer = new Timer(this, 200);
     QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &Game::generateEnemy);
-    makeEnemyTimer->setInterval(200);
-//    makeEnemyTimer->setInterval(3000);
 
-    fpsTimer = new QTimer();
+    fpsTimer = new Timer(this, 100);
     QObject::connect(fpsTimer, &QTimer::timeout, this, &Game::setFps);
-    fpsTimer->setInterval(100);
 
     fpsStopwatch = new QElapsedTimer();
 
 
-    fpsText = new QGraphicsTextItem("0");
+    fpsText = new QGraphicsTextItem();
     fpsText->setDefaultTextColor(Qt::white);
     fpsText->setFont(QFont("Menlo", scene->width() / 75, QFont::Bold));
     fpsText->setPos(0, 0);
     fpsText->setZValue(1);
 
-    regenDelayTimer = new QTimer();
-    regenDelayTimer->setSingleShot(true);
+    regenDelayTimer = new Timer(this, 500, true);
     QObject::connect(regenDelayTimer, &QTimer::timeout, this, &Game::startHealthRegen);
-    regenDelayTimer->setInterval(2000);
 
-    regenTimer = new QTimer();
+    regenTimer = new Timer(this, 10);
     QObject::connect(regenTimer, &QTimer::timeout, this, &Game::healthRegen);
-    regenTimer->setInterval(5);
 
 
     QSettings settings("BenMax Productions", "BenMaxGame");
@@ -181,13 +171,28 @@ void Game::mainFunction()
     bulletImpact();
     enemyImpact();
 
-    frameTimes.append(fpsStopwatch->restart());
+    if (justResumed) {
+        fpsStopwatch->restart();
+        justResumed = false;
+    } else {
+        frameTimes.append(fpsStopwatch->restart());
+    }
 }
 
 void Game::drawBackground(QPainter *painter, const QRectF &rect)
 {
     QGraphicsView::drawBackground(painter, rect);
     painter->drawPixmap(scene()->sceneRect().toRect(), background);
+}
+
+void Game::drawForeground(QPainter *painter, const QRectF &)
+{
+    QPainterPath path;
+    path.addRect(scene()->sceneRect());
+    path.addRect(QRectF(-300, -300, scene()->sceneRect().width() + 600, scene()->sceneRect().height() + 600));
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(Qt::black);
+    painter->drawPath(path);
 }
 
 void Game::keyPressEvent(QKeyEvent *event)
@@ -214,12 +219,20 @@ void Game::keyPressEvent(QKeyEvent *event)
         downHeld = true;
         player->setUp(false);
     } else if (key == Qt::Key_N) {
-        qDeleteAll(enemies);
-        enemies.clear();
+        nuke();
     } else if (key == Qt::Key_Space) {
         pauseButton->mousePress(QPointF(pauseButton->sceneBoundingRect().center()));
         pauseButton->mouseRelease();
+    } else if (key == Qt::Key_E) {
+        autoFire = !autoFire;
+        if (autoFire) {
+            shotsTimer->start();
+        } else {
+            shotsTimer->stop();
+        }
     }
+    if (mode == Multiplayer)
+        sendPlayerDirection();
 }
 
 void Game::keyReleaseEvent(QKeyEvent *event)
@@ -246,6 +259,8 @@ void Game::keyReleaseEvent(QKeyEvent *event)
         downHeld = false;
         if (upHeld) player->setUp(true);
     }
+    if (mode == Multiplayer)
+        sendPlayerDirection();
 }
 
 void Game::mouseDoubleClickEvent(QMouseEvent *event)
@@ -273,11 +288,11 @@ void Game::mouseMoveEvent(QMouseEvent *event)
     else
         setCursor(QCursor(Qt::ArrowCursor));
 
+    mouseTip = point;
+
     if (gamePaused || pauseButton->getPressed()) return;
 
     if (player->getDead()) return;
-
-    mouseTip = point;
 
     moveGun();
 
@@ -290,10 +305,11 @@ void Game::mousePressEvent(QMouseEvent *event)
     QPointF point(mapToScene(event->pos()));
 
     if (!gameStarted) {
-        startPublicGame->mousePress(point);
-        startLocalGame->mousePress(point);
-        joinPublicGame->mousePress(point);
-        changeNameButton->mousePress(point);
+        for (auto button: buttons) {
+            if (button->mousePress(point)) {
+                return;
+            }
+        }
         return;
     }
 
@@ -305,17 +321,19 @@ void Game::mousePressEvent(QMouseEvent *event)
 
     mouseMoveEvent(event);
 
-    shoot();
-    delayTimer->start();
+    if (!autoFire) {
+        shoot();
+        delayTimer->start();
+    }
+
 }
 
 void Game::mouseReleaseEvent(QMouseEvent *event)
 {
     if (!gameStarted) {
-        startPublicGame->mouseRelease();
-        startLocalGame->mouseRelease();
-        joinPublicGame->mouseRelease();
-        changeNameButton->mouseRelease();
+        for (auto button: buttons) {
+            button->mouseRelease();
+        }
         return;
     }
 
@@ -327,8 +345,10 @@ void Game::mouseReleaseEvent(QMouseEvent *event)
 
     mouseMoveEvent(event);
 
-    shotsTimer->stop();
-    delayTimer->stop();
+    if (!autoFire) {
+        shotsTimer->stop();
+        delayTimer->stop();
+    }
 }
 
 void Game::resizeEvent(QResizeEvent *)
@@ -454,6 +474,7 @@ void Game::bulletImpact()
             if (!bullet) continue;
             QRectF bulletRect(bullet->sceneBoundingRect());
             if (enemyRect.intersects(bulletRect)) {
+                enemy->activateRegen();
                 enemy->setHealth(enemy->getHealth() - bullet->getDamage());
                 if (enemy->getHealth() <= 0) {
                     if (bullet->getIsPrimaryBullet())
@@ -483,6 +504,7 @@ void Game::enemyImpact()
             regenTimer->stop();
             regenDelayTimer->start();
             player->setHealth(player->getHealth() - enemy->getDamage());
+            playerHealthBar->update();
             setScore(player->getScore() + enemy->getStartHealth());
             if (player->getHealth() <= 0) {
                 if (mode == Game::Solo) {
@@ -492,8 +514,6 @@ void Game::enemyImpact()
                     makeEnemyTimer->stop();
                     delayTimer->stop();
                     shotsTimer->stop();
-                    regenDelayTimer->stop();
-                    regenTimer->stop();
                     sendPlayerData();
                     if (status == Game::Host) {
                         bool allDead = true;
@@ -549,6 +569,18 @@ void Game::moveGun()
     gunTip = mouseLine.pointAt(60 / mouseLine.length());
 
     player->getGun()->rotate(player->getMouseAngle());
+}
+
+void Game::nuke()
+{
+    for (auto enemy: enemies) {
+        enemy->startExplosion();
+    }
+    for (auto bullet: bullets) {
+        bullet->startExplosion();
+    }
+    enemies.clear();
+    bullets.clear();
 }
 
 void Game::setScene()
@@ -613,6 +645,8 @@ void Game::gameEnd()
 {
     gameStarted = false;
     gamePaused = false;
+    justResumed = false;
+    autoFire = false;
 
     serverSize = 0;
 
@@ -683,18 +717,40 @@ void Game::gamePause()
 {
     gamePaused = !gamePaused;
     if (gamePaused) {
-        mainTimer->stop();
-        fpsTimer->stop();
-        frameTimes.clear();
-        shotsTimer->stop();
-        delayTimer->stop();
-        makeEnemyTimer->stop();
-        regenTimer->stop();
-        regenDelayTimer->stop();
+        mainTimer->pause();
+        fpsTimer->pause();
+
+        if (autoFire) {
+            shotsTimer->pause();
+        } else {
+            shotsTimer->stop();
+            delayTimer->stop();
+        }
+
+
+        makeEnemyTimer->pause();
+
+        regenTimer->pause();
+        regenDelayTimer->pause();
+
+        for (auto enemy: enemies)
+            enemy->pause();
     } else {
-        mainTimer->start();
-        fpsTimer->start();
-        makeEnemyTimer->start();
+        mainTimer->resume();
+        fpsTimer->resume();
+        justResumed = true;
+
+        if (autoFire) {
+            shotsTimer->resume();
+        }
+
+        makeEnemyTimer->resume();
+
+        regenTimer->resume();
+        regenDelayTimer->resume();
+
+        for (auto enemy: enemies)
+            enemy->resume();
     }
 }
 
@@ -714,7 +770,7 @@ void Game::setFps()
     for (auto time: frameTimes)
         averageTime += time;
     averageTime /= frameTimes.size();
-    fpsText->setPlainText(QString::number((int)(1000 / averageTime)));
+    fpsText->setPlainText(QString::number((int)(1000 / averageTime)) + " FPS");
     frameTimes.clear();
 }
 
@@ -881,12 +937,26 @@ void Game::sendPlayerData()
     if (!client) return;
     QDataStream clientStream(client->clientSocket());
 
-    Data data(Data::PlayerMove);
+    Data data(Data::PlayerData);
     data.setPlayerId(player->getId());
     data.setPlayerPos(player->pos());
     data.setPlayerMouseAngle(player->getMouseAngle());
     data.setPlayerHealth(player->getHealth());
     data.setPlayerScore(player->getScore());
+    clientStream << data;
+}
+
+void Game::sendPlayerDirection()
+{
+    if (!client) return;
+    QDataStream clientStream(client->clientSocket());
+
+    Data data(Data::PlayerDirection);
+    data.setPlayerId(player->getId());
+    data.setLeft(player->getLeft());
+    data.setRight(player->getRight());
+    data.setUp(player->getUp());
+    data.setDown(player->getDown());
     clientStream << data;
 }
 
@@ -953,7 +1023,7 @@ void Game::sendGameOver()
 void Game::receiveData(Data data)
 {
     switch (data.getType()) {
-    case Data::PlayerMove: {
+    case Data::PlayerData: {
         if (!gameStarted) break;
         Player *otherPlayer = otherPlayersMap[data.getPlayerId()];
         otherPlayer->setPos(data.getPlayerPos());
@@ -983,6 +1053,15 @@ void Game::receiveData(Data data)
                 otherPlayer->startExplosion();
             }
         }
+        break;
+    }
+    case Data::PlayerDirection: {
+        if (!gameStarted) break;
+        Player *otherPlayer = otherPlayersMap[data.getPlayerId()];
+        otherPlayer->setLeft(data.getLeft());
+        otherPlayer->setRight(data.getRight());
+        otherPlayer->setUp(data.getUp());
+        otherPlayer->setDown(data.getDown());
         break;
     }
     case Data::NewPlayer: {

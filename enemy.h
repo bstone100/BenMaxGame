@@ -3,6 +3,7 @@
 
 #include "QtCore/quuid.h"
 #include <QGraphicsRectItem>
+#include "timer.h"
 
 class HealthBar;
 
@@ -42,6 +43,12 @@ public:
 
     bool getDead() const;
 
+    void startHealthRegen();
+    void healthRegen();
+    void activateRegen();
+    void pause();
+    void resume();
+
 protected:
     void advance(int step) override;
 
@@ -56,6 +63,9 @@ private:
     int health;
     int startHealth;
     HealthBar *healthBar;
+
+    Timer *regenDelayTimer;
+    Timer *regenTimer;
 
     int damage;
 
