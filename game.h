@@ -108,6 +108,7 @@ private:
     QMap<QUuid, Player *> otherPlayersMap;
 
     Timer *mainTimer;
+    Timer *sendDataTimer;
     Timer *shotsTimer;
     Timer *delayTimer;
     Timer *cleanUpTimer;

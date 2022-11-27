@@ -20,7 +20,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     MainWindow *w = new MainWindow();
-    w->setMaximumSize(QGuiApplication::primaryScreen()->size());
     w->setMinimumSize(QGuiApplication::primaryScreen()->size() / 2);
     w->setWindowTitle("BenMaxGame");
 

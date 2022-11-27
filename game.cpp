@@ -30,6 +30,10 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     QObject::connect(mainTimer, &QTimer::timeout, this, &Game::mainFunction);
     // calculations happen 100 times per second
 
+    sendDataTimer = new Timer(this, mainTimer->interval() / 2);
+    QObject::connect(sendDataTimer, &QTimer::timeout, this, &Game::sendPlayerData);
+    // every 5 ms
+
     shotsTimer = new Timer(this, 50);
     QObject::connect(shotsTimer, &QTimer::timeout, this, &Game::shoot);
 
@@ -163,8 +167,8 @@ void Game::mainFunction()
 
     if (!player->getDead()) {
         moveGun();
-        if (mode == Game::Multiplayer)
-            sendPlayerData();
+//        if (mode == Game::Multiplayer)
+//            sendPlayerData();
     }
 
     cleanUpScene();
@@ -637,6 +641,7 @@ void Game::gameStart()
     gameStarted = true;
 
     mainTimer->start();
+    if (mode == Game::Multiplayer) sendDataTimer->start();
     fpsTimer->start();
     makeEnemyTimer->start();
 }
@@ -695,6 +700,7 @@ void Game::gameEnd()
     scene()->addItem(changeNameButton);
 
     mainTimer->stop();
+    sendDataTimer->stop();
     fpsTimer->stop();
     frameTimes.clear();
     shotsTimer->stop();
@@ -718,6 +724,7 @@ void Game::gamePause()
     gamePaused = !gamePaused;
     if (gamePaused) {
         mainTimer->pause();
+        if (mode == Game::Multiplayer) sendDataTimer->pause();
         fpsTimer->pause();
 
         if (autoFire) {
@@ -737,6 +744,7 @@ void Game::gamePause()
             enemy->pause();
     } else {
         mainTimer->resume();
+        if (mode == Game::Multiplayer) sendDataTimer->resume();
         fpsTimer->resume();
         justResumed = true;
 
