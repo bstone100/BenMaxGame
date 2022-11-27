@@ -26,13 +26,12 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
 
     serverSize = 0;
 
+    // calculations happen 100 times per second
     mainTimer = new Timer(this, 10);
     QObject::connect(mainTimer, &QTimer::timeout, this, &Game::mainFunction);
-    // calculations happen 100 times per second
 
-    sendDataTimer = new Timer(this, mainTimer->interval() / 2);
+    sendDataTimer = new Timer(this, 10);
     QObject::connect(sendDataTimer, &QTimer::timeout, this, &Game::sendPlayerData);
-    // every 5 ms
 
     shotsTimer = new Timer(this, 50);
     QObject::connect(shotsTimer, &QTimer::timeout, this, &Game::shoot);
@@ -300,8 +299,8 @@ void Game::mouseMoveEvent(QMouseEvent *event)
 
     moveGun();
 
-    if (mode == Game::Multiplayer)
-        sendPlayerData();
+//    if (mode == Game::Multiplayer)
+//        sendPlayerData();
 }
 
 void Game::mousePressEvent(QMouseEvent *event)
@@ -1034,7 +1033,12 @@ void Game::receiveData(Data data)
     case Data::PlayerData: {
         if (!gameStarted) break;
         Player *otherPlayer = otherPlayersMap[data.getPlayerId()];
-        otherPlayer->setPos(data.getPlayerPos());
+//        otherPlayer->setPos(data.getPlayerPos());
+        // update positions if they are way out of sync
+        if (QLineF(otherPlayer->pos(), data.getPlayerPos()).length() > 50) {
+            otherPlayer->setPos(data.getPlayerPos());
+            qDebug() << "changing pos";
+        }
         otherPlayer->getGun()->rotate(data.getPlayerMouseAngle());
         otherPlayer->setScore(data.getPlayerScore());
         otherPlayer->setHealth(data.getPlayerHealth());
