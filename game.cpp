@@ -19,6 +19,8 @@ int enemySizes[] = {30, 50, 70, 90, 110, 130, 150};
 Game::Game(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent)
 {
+    Enemy::makeImages();
+
     gameStarted = false;
     gamePaused = false;
     justResumed = false;
@@ -28,22 +30,22 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
 
     // calculations happen 100 times per second
     mainTimer = new Timer(this, 10);
-    QObject::connect(mainTimer, &QTimer::timeout, this, &Game::mainFunction);
+    QObject::connect(mainTimer, &Timer::timeout, this, &Game::mainFunction);
 
     sendDataTimer = new Timer(this, 10);
-    QObject::connect(sendDataTimer, &QTimer::timeout, this, &Game::sendPlayerData);
+    QObject::connect(sendDataTimer, &Timer::timeout, this, &Game::sendPlayerData);
 
     shotsTimer = new Timer(this, 50);
-    QObject::connect(shotsTimer, &QTimer::timeout, this, &Game::shoot);
+    QObject::connect(shotsTimer, &Timer::timeout, this, &Game::shoot);
 
     delayTimer = new Timer(this, 250, true);
-    QObject::connect(delayTimer, &QTimer::timeout, this, &Game::startFullAuto);
+    QObject::connect(delayTimer, &Timer::timeout, this, &Game::startFullAuto);
 
     makeEnemyTimer = new Timer(this, 200);
-    QObject::connect(makeEnemyTimer, &QTimer::timeout, this, &Game::generateEnemy);
+    QObject::connect(makeEnemyTimer, &Timer::timeout, this, &Game::generateEnemy);
 
     fpsTimer = new Timer(this, 100);
-    QObject::connect(fpsTimer, &QTimer::timeout, this, &Game::setFps);
+    QObject::connect(fpsTimer, &Timer::timeout, this, &Game::setFps);
 
     fpsStopwatch = new QElapsedTimer();
 
@@ -55,10 +57,10 @@ Game::Game(QGraphicsScene *scene, QWidget *parent)
     fpsText->setZValue(1);
 
     regenDelayTimer = new Timer(this, 500, true);
-    QObject::connect(regenDelayTimer, &QTimer::timeout, this, &Game::startHealthRegen);
+    QObject::connect(regenDelayTimer, &Timer::timeout, this, &Game::startHealthRegen);
 
     regenTimer = new Timer(this, 10);
-    QObject::connect(regenTimer, &QTimer::timeout, this, &Game::healthRegen);
+    QObject::connect(regenTimer, &Timer::timeout, this, &Game::healthRegen);
 
 
     QSettings settings("BenMax Productions", "BenMaxGame");
@@ -164,11 +166,7 @@ void Game::mainFunction()
 {
     scene()->advance();
 
-    if (!player->getDead()) {
-        moveGun();
-//        if (mode == Game::Multiplayer)
-//            sendPlayerData();
-    }
+    moveGun();
 
     cleanUpScene();
     bulletImpact();
@@ -298,9 +296,6 @@ void Game::mouseMoveEvent(QMouseEvent *event)
     if (player->getDead()) return;
 
     moveGun();
-
-//    if (mode == Game::Multiplayer)
-//        sendPlayerData();
 }
 
 void Game::mousePressEvent(QMouseEvent *event)
@@ -605,7 +600,7 @@ void Game::setScene()
 void Game::gameStart()
 {
     setScore(0);
-    level = 0;
+    level = 1;
     enemyVelo = 2;
     upHeld = downHeld = leftHeld = rightHeld = false;
     player->resetProperties();
@@ -720,6 +715,8 @@ void Game::gameEnd()
 
 void Game::gamePause()
 {
+    if (!gameStarted) return;
+
     gamePaused = !gamePaused;
     if (gamePaused) {
         mainTimer->pause();
@@ -732,7 +729,6 @@ void Game::gamePause()
             shotsTimer->stop();
             delayTimer->stop();
         }
-
 
         makeEnemyTimer->pause();
 
@@ -764,11 +760,12 @@ void Game::gamePause()
 void Game::setScore(int newScore)
 {
     player->setScore(newScore);
-    scoreText->setPlainText(QString::number(player->getScore()));
-    if (player->getScore() >= level + 500) {
-        level += 500;
+    scoreText->setPlainText(QString::number(newScore));
+    if (newScore >= level * 500) {
+        level++;
         enemyVelo++;
     }
+
 }
 
 void Game::setFps()
@@ -1033,12 +1030,7 @@ void Game::receiveData(Data data)
     case Data::PlayerData: {
         if (!gameStarted) break;
         Player *otherPlayer = otherPlayersMap[data.getPlayerId()];
-//        otherPlayer->setPos(data.getPlayerPos());
-        // update positions if they are way out of sync
-        if (QLineF(otherPlayer->pos(), data.getPlayerPos()).length() > 50) {
-            otherPlayer->setPos(data.getPlayerPos());
-            qDebug() << "changing pos";
-        }
+        otherPlayer->setPos(data.getPlayerPos());
         otherPlayer->getGun()->rotate(data.getPlayerMouseAngle());
         otherPlayer->setScore(data.getPlayerScore());
         otherPlayer->setHealth(data.getPlayerHealth());

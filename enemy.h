@@ -49,6 +49,8 @@ public:
     void pause();
     void resume();
 
+    static void makeImages();
+
 protected:
     void advance(int step) override;
 

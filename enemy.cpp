@@ -4,7 +4,15 @@
 #include "QtWidgets/qgraphicsscene.h"
 #include "healthbar.h"
 
-int sizes[] = {30, 50, 70, 90, 110, 130, 150};
+QMap<int, QPixmap> images;
+
+void Enemy::makeImages()
+{
+    QPixmap image(":/images/maxSmall.jpg");
+    for (int i = 30; i <= 150; i += 20) {
+        images[i] = image.scaled(i, i, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    }
+}
 
 Enemy::Enemy(QPointF startPoint, QPointF playerCenter, int velo, int size)
 {
@@ -16,10 +24,7 @@ Enemy::Enemy(QPointF startPoint, QPointF playerCenter, int velo, int size)
     QLineF mouseLine(centerPoint, playerCenter);
     angle = qDegreesToRadians(mouseLine.angle());
 
-    QString image(":/images/madmax/madmax");
-    image += QString::number(size);
-    image += ".jpg";
-    setPixmap(QPixmap(image));
+    setPixmap(images[size]);
     setPos(startPoint);
 
     startHealth = health = damage = size;
@@ -27,10 +32,10 @@ Enemy::Enemy(QPointF startPoint, QPointF playerCenter, int velo, int size)
     healthBar = new HealthBar(this);
 
     regenDelayTimer = new Timer(this, 500, true);
-    QObject::connect(regenDelayTimer, &QTimer::timeout, this, &Enemy::startHealthRegen);
+    QObject::connect(regenDelayTimer, &Timer::timeout, this, &Enemy::startHealthRegen);
 
     regenTimer = new Timer(this, 10);
-    QObject::connect(regenTimer, &QTimer::timeout, this, &Enemy::healthRegen);
+    QObject::connect(regenTimer, &Timer::timeout, this, &Enemy::healthRegen);
 
     dead = false;
     scale = 1;

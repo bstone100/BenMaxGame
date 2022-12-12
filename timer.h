@@ -1,26 +1,46 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include <QTimer>
+#include <QObject>
 
-class Timer : public QTimer
+class Timer : public QObject
 {
+    Q_OBJECT
 public:
-    explicit Timer(QObject *parent = nullptr);
     Timer(QObject *parent = nullptr, int interval = 0, bool singleShot = false);
+    ~Timer();
+
+    void start();
+    void start(int msec);
+    void stop();
 
     void pause();
     void resume();
 
-    void changeInterval(int newInterval);
-    void changeSingleShot(bool newSingleShot);
+    inline bool isActive() const { return id >= 0; }
+    int timerId() const { return id; }
+
+    void setInterval(int msec);
+    int interval() const { return inter; }
+
+    int remainingTime() const;
+
+    inline void setSingleShot(bool singleShot);
+    inline bool isSingleShot() const { return single; }
+
+signals:
+    void timeout();
+
+protected:
+    void timerEvent(QTimerEvent *e) override;
 
 private:
+    int id;
+    int inter;
     int remaining;
-    int oldInterval;
-    bool singleShot;
+    bool single;
+    bool resuming;
 
-    void reset();
 };
 
 #endif // TIMER_H

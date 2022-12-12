@@ -1,64 +1,93 @@
 #include "timer.h"
-#include "QtCore/qdebug.h"
+#include <QTimerEvent>
+#include <QAbstractEventDispatcher>
 
-Timer::Timer(QObject *parent)
-    : QTimer{parent}
-{
-
-}
+static const int INV_TIMER = -1;
 
 Timer::Timer(QObject *parent, int interval, bool singleShot)
-    : QTimer(parent), oldInterval(interval), singleShot(singleShot)
+    : QObject{parent}, inter(interval), single(singleShot)
 {
-    setInterval(interval);
-    setSingleShot(singleShot);
+    id = INV_TIMER;
+    resuming = false;
+    remaining = -1;
 }
 
-// use instead of setInterval()
-void Timer::changeInterval(int newInterval)
+Timer::~Timer()
 {
-    oldInterval = newInterval;
-    setInterval(newInterval);
+    if (id != INV_TIMER)
+        stop();
 }
 
-// use instead of setSingleShot()
-void Timer::changeSingleShot(bool newSingleShot)
+void Timer::start()
 {
-    singleShot = newSingleShot;
-    setSingleShot(newSingleShot);
+    if (id != INV_TIMER)
+        stop();
+    id = QObject::startTimer(inter, Qt::PreciseTimer);
 }
 
-// save remaining time
+void Timer::start(int msec)
+{
+    inter = msec;
+    start();
+}
+
+void Timer::stop()
+{
+    if (id != INV_TIMER) {
+        QObject::killTimer(id);
+        id = INV_TIMER;
+    }
+}
+
 void Timer::pause()
 {
-//    qDebug() << "pause";
-
     remaining = remainingTime();
     stop();
 }
 
-// run for remaining time
 void Timer::resume()
 {
-    if (remaining < 0) return;
+    if (isActive() || remaining < 0) return;
 
-//    qDebug() << "resume: " << remaining << " ms remaining";
-
-    setInterval(remaining);
-    setSingleShot(true);
-    QObject::connect(this, &QTimer::timeout, this, &Timer::reset);
-    start();
+    resuming = true;
+    id = QObject::startTimer(remaining, Qt::PreciseTimer);
+    remaining = -1;
 }
 
-// return timer to state before pause
-void Timer::reset()
+void Timer::setInterval(int msec)
 {
-//    qDebug() << "resetting to " << oldInterval << " ms";
+    inter = msec;
+    if (id != INV_TIMER) {
+        QObject::killTimer(id);
+        id = QObject::startTimer(msec, Qt::PreciseTimer);
+    }
+}
 
-    setInterval(oldInterval);
-    setSingleShot(singleShot);
-    QObject::disconnect(this, &QTimer::timeout, this, &Timer::reset);
-    if (!singleShot) {
-        start();
+int Timer::remainingTime() const
+{
+    if (id != INV_TIMER) {
+        return QAbstractEventDispatcher::instance()->remainingTime(id);
+    }
+    return -1;
+}
+
+void Timer::setSingleShot(bool singleShot)
+{
+    single = singleShot;
+}
+
+void Timer::timerEvent(QTimerEvent *e)
+{
+    if (e->timerId() == id) {
+        if (resuming) {
+            stop();
+            if (!single)
+                start();
+            resuming = false;
+        } else {
+            if (single)
+                stop();
+        }
+        emit timeout();
     }
 }

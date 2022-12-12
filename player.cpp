@@ -8,7 +8,7 @@ Player::Player(QUuid id, QString name)
     : id(id), name(name)
 {
     size = 50;
-    setPixmap(QPixmap(":/images/bstone1oo.jpg"));
+    setPixmap(QPixmap(":/images/benSmall.jpg").scaled(size, size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
     velo = 5;
 

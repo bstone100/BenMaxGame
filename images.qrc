@@ -1,14 +1,14 @@
 <RCC>
     <qresource prefix="/">
         <file>images/space3.jpg</file>
-        <file>images/bstone1oo.jpg</file>
-        <file>images/madmax.jpg</file>
-        <file>images/madmax/madmax30.jpg</file>
-        <file>images/madmax/madmax50.jpg</file>
-        <file>images/madmax/madmax70.jpg</file>
-        <file>images/madmax/madmax90.jpg</file>
-        <file>images/madmax/madmax110.jpg</file>
-        <file>images/madmax/madmax130.jpg</file>
-        <file>images/madmax/madmax150.jpg</file>
+        <file>images/benFull.jpg</file>
+        <file>images/benSmall.jpg</file>
+        <file>images/maxFull.jpg</file>
+        <file>images/maxSmall.jpg</file>
+        <file>images/benMax.jpg</file>
+        <file>images/benMax2.jpg</file>
+        <file>images/ethan.JPG</file>
+        <file>images/jensen.PNG</file>
+        <file>images/linda.JPG</file>
     </qresource>
 </RCC>
